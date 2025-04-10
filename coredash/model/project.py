@@ -55,7 +55,7 @@ class Project(AuditMixin, CommonMixin, db.Model):
     comments: Mapped[str] = mapped_column(Text, nullable=False)
 
     local_rec_number: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
-    iras_number: Mapped[int] = mapped_column(nullable=True)
+    iras_number: Mapped[str] = mapped_column(String(50), nullable=True, unique=True)
 
     start_date: Mapped[date] = mapped_column(nullable=False, index=True)
     end_date: Mapped[date] = mapped_column(index=True)
