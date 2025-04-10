@@ -1,3 +1,4 @@
+import shutil
 import pytest
 from faker import Faker
 from lbrc_flask.pytest.fixtures import *
@@ -6,6 +7,7 @@ from coredash import create_app
 from lbrc_flask.pytest.faker import LbrcFlaskFakerProvider, LbrcFileProvider
 from lbrc_flask.pytest.helpers import login
 from coredash.security import init_authorization
+from tests.faker import CoreDashLookupProvider, ProjectProvider
 
 
 @pytest.fixture(scope="function")
@@ -23,7 +25,7 @@ def loggedin_user(client, faker):
 def app():
     yield create_app(TestConfig)
 
-    # shutil.rmtree(TestConfig().FILE_UPLOAD_DIRECTORY, ignore_errors=True)
+    shutil.rmtree(TestConfig().FILE_UPLOAD_DIRECTORY, ignore_errors=True)
 
 
 @pytest.fixture(scope="function")
@@ -31,5 +33,7 @@ def faker():
     result = Faker("en_GB")
     result.add_provider(LbrcFlaskFakerProvider)
     result.add_provider(LbrcFileProvider)
+    result.add_provider(CoreDashLookupProvider)
+    result.add_provider(ProjectProvider)
 
     yield result
