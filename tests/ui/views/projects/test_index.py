@@ -41,6 +41,10 @@ def test__get__requires_login(client):
     assert__requires_login(client, _url(external=False))
 
 
-def test__get__one(client, faker, loggedin_user, standard_lookups):
-    specimen = faker.project().get_in_db()
-    resp = _get(client, _url(), loggedin_user, has_form=False, expected_count=1)
+@pytest.mark.parametrize(
+    "n", [1, 2, 3],
+)
+def test__get__n(client, faker, loggedin_user, standard_lookups, n):
+    for _ in range(n):
+        faker.project().get_in_db()
+    resp = _get(client, _url(), loggedin_user, has_form=False, expected_count=n)
