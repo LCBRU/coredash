@@ -1,24 +1,23 @@
-from sqlalchemy import select
-
 from coredash.model.lookups import Theme
-from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
+from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 from coredash.services.projects import project_search_query
 from .. import blueprint
 from flask import render_template, request
-from lbrc_flask.forms import SearchForm
+from lbrc_flask.forms import SearchForm, YesNoSelectField
 from lbrc_flask.database import db
 from lbrc_flask.lookups import LookupRepository
-from wtforms import BooleanField, DateField, SelectField
+from wtforms import DateField, SelectField
+
 
 class ProjectSearchForm(SearchForm):
     start_date = DateField('Start Date')
     end_date = DateField('End Date')
-    sensitive = BooleanField('Sensitive Data')
-    first_in_human = BooleanField('First in Human')
-    link_to_nihr_transactional_research_collaboration = BooleanField('Link to NIHR Translational Research Collaboration')
-    crn_rdn_portfolio_study = BooleanField('CRN/RDN Portfolio Study')
-    rec_approval_required = BooleanField('REC Approval Required')
-    randomised_trial = BooleanField('Randomised Trial')
+    sensitive = YesNoSelectField('Sensitive Data')
+    first_in_human = YesNoSelectField('First in Human')
+    link_to_nihr_transactional_research_collaboration = YesNoSelectField('Link to NIHR Translational Research Collaboration')
+    crn_rdn_portfolio_study = YesNoSelectField('CRN/RDN Portfolio Study')
+    rec_approval_required = YesNoSelectField('REC Approval Required')
+    randomised_trial = YesNoSelectField('Randomised Trial')
     project_status_id = SelectField('Status', coerce=int, render_kw={'class':' select2'})
     theme_id = SelectField('Theme', coerce=int, render_kw={'class':' select2'})
     ukcrc_health_category_id = SelectField('UKCRC Health Category', coerce=int, render_kw={'class':' select2'})

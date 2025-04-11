@@ -17,4 +17,7 @@ def project_search_query(search_data=None):
                 Project.iras_number.like(f"%{word}%"),
             ))
 
+    if search_data.get('sensitive') is not None:
+        q = q.where(Project.sensitive == search_data.get('sensitive'))
+
     return q

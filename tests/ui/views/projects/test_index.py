@@ -1,6 +1,6 @@
 import pytest
 from flask import url_for
-from lbrc_flask.pytest.asserts import assert__search_html, assert__requires_login, assert__select, assert__input_date, assert__input_checkbox
+from lbrc_flask.pytest.asserts import assert__search_html, assert__requires_login, assert__select, assert__input_date, assert__yesno_select
 from coredash.model.lookups import Theme
 from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 from tests.requests import coredash_get
@@ -18,12 +18,14 @@ def _get(client, url, loggedin_user, faker, has_form, expected_count):
 
     assert__input_date(soup=resp.soup, id='start_date')
     assert__input_date(soup=resp.soup, id='end_date')
-    assert__input_checkbox(soup=resp.soup, id='sensitive')
-    assert__input_checkbox(soup=resp.soup, id='first_in_human')
-    assert__input_checkbox(soup=resp.soup, id='link_to_nihr_transactional_research_collaboration')
-    assert__input_checkbox(soup=resp.soup, id='crn_rdn_portfolio_study')
-    assert__input_checkbox(soup=resp.soup, id='rec_approval_required')
-    assert__input_checkbox(soup=resp.soup, id='randomised_trial')
+
+    assert__yesno_select(soup=resp.soup, id='sensitive')
+    assert__yesno_select(soup=resp.soup, id='first_in_human')
+    assert__yesno_select(soup=resp.soup, id='link_to_nihr_transactional_research_collaboration')
+    assert__yesno_select(soup=resp.soup, id='crn_rdn_portfolio_study')
+    assert__yesno_select(soup=resp.soup, id='rec_approval_required')
+    assert__yesno_select(soup=resp.soup, id='randomised_trial')
+
     assert__select(soup=resp.soup, id='project_status_id', options=faker.lookup_select_choices(ProjectStatus))
     assert__select(soup=resp.soup, id='theme_id', options=faker.lookup_select_choices(Theme))
     assert__select(soup=resp.soup, id='ukcrc_health_category_id', options=faker.lookup_select_choices(UkcrcHealthCategory))
@@ -78,15 +80,18 @@ def test__search__string(client, faker, loggedin_user, standard_lookups, n, fiel
     "n", [1, 2, 3],
 )
 @pytest.mark.parametrize(
-    "field", ['sensitive'],
+    "field", ['sensitive', 'first_in_human', 'link_to_nihr_transactional_research_collaboration', 'crn_rdn_portfolio_study', 'rec_approval_required', 'randomised_trial'],
 )
-def test__search__boolean(client, faker, loggedin_user, standard_lookups, n, field):
+@pytest.mark.parametrize(
+    "value", ['yes', 'no'],
+)
+def test__search__yesno(client, faker, loggedin_user, standard_lookups, n, field, value):
     for _ in range(30):
-        params = {field: False}
-        faker.project().get_in_db()
+        params = {field: value == 'no'}
+        x = faker.project().get_in_db(**params)
     for i in range(n):
-        params = {field: True}
-        faker.project().get_in_db(**params)
+        params = {field: value == 'yes'}
+        x = faker.project().get_in_db(**params)
 
-    search_params = {field: True}
+    search_params = {field: value}
     resp = _get(client, _url(**search_params), loggedin_user, faker, has_form=False, expected_count=n)

@@ -25,17 +25,22 @@ class CoreDashLookupProvider(LookupProvider):
 class ProjectFakeCreator(FakeCreator):
     def __init__(self):
         super().__init__(Project)
+        self.previous_iras_number = set()
 
     def get(self, lookups_in_db=True, **kwargs):
         self.faker.add_provider(CoreDashLookupProvider)
 
+        sensitive = kwargs.get('sensitive')
+        if sensitive is None:
+            sensitive = self.faker.pybool()
+        
         result = self.cls(
             title = kwargs.get('title') or self.faker.sentence(),
             summary = kwargs.get('summary') or self.faker.paragraph(),
             comments = kwargs.get('comments') or self.faker.paragraph(),
 
-            local_rec_number = kwargs.get('local_rec_number') or self.faker.pystr(min_chars=8, max_chars=8),
-            iras_number = kwargs.get('iras_number') or self.faker.pyint(),
+            local_rec_number = kwargs.get('local_rec_number') or self.faker.unique.pystr(min_chars=8, max_chars=8),
+            iras_number = kwargs.get('iras_number') or self.faker.unique.pystr(min_chars=8, max_chars=8),
 
             start_date = kwargs.get('start_date') or self.faker.date_object(),
             end_date = kwargs.get('end_date') or self.faker.date_object(),
@@ -45,7 +50,7 @@ class ProjectFakeCreator(FakeCreator):
             main_funding_brc_funding = kwargs.get('main_funding_brc_funding') or self.faker.pyint(),
             total_external_funding_award = kwargs.get('total_external_funding_award') or self.faker.pyint(),
 
-            sensitive = kwargs.get('sensitive') or self.faker.pybool(),
+            sensitive = sensitive,
             first_in_human = kwargs.get('first_in_human') or self.faker.pybool(),
             link_to_nihr_transactional_research_collaboration = kwargs.get('link_to_nihr_transactional_research_collaboration') or self.faker.pybool(),
             crn_rdn_portfolio_study = kwargs.get('crn_rdn_portfolio_study') or self.faker.pybool(),
