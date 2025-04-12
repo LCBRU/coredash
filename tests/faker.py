@@ -34,6 +34,26 @@ class ProjectFakeCreator(FakeCreator):
         if sensitive is None:
             sensitive = self.faker.pybool()
         
+        first_in_human = kwargs.get('first_in_human')
+        if first_in_human is None:
+            first_in_human = self.faker.pybool()
+        
+        link_to_nihr_transactional_research_collaboration = kwargs.get('link_to_nihr_transactional_research_collaboration')
+        if link_to_nihr_transactional_research_collaboration is None:
+            link_to_nihr_transactional_research_collaboration = self.faker.pybool()
+        
+        crn_rdn_portfolio_study = kwargs.get('crn_rdn_portfolio_study')
+        if crn_rdn_portfolio_study is None:
+            crn_rdn_portfolio_study = self.faker.pybool()
+        
+        rec_approval_required = kwargs.get('rec_approval_required')
+        if rec_approval_required is None:
+            rec_approval_required = self.faker.pybool()
+        
+        randomised_trial = kwargs.get('randomised_trial')
+        if randomised_trial is None:
+            randomised_trial = self.faker.pybool()
+        
         result = self.cls(
             title = kwargs.get('title') or self.faker.sentence(),
             summary = kwargs.get('summary') or self.faker.paragraph(),
@@ -51,11 +71,11 @@ class ProjectFakeCreator(FakeCreator):
             total_external_funding_award = kwargs.get('total_external_funding_award') or self.faker.pyint(),
 
             sensitive = sensitive,
-            first_in_human = kwargs.get('first_in_human') or self.faker.pybool(),
-            link_to_nihr_transactional_research_collaboration = kwargs.get('link_to_nihr_transactional_research_collaboration') or self.faker.pybool(),
-            crn_rdn_portfolio_study = kwargs.get('crn_rdn_portfolio_study') or self.faker.pybool(),
-            rec_approval_required = kwargs.get('rec_approval_required') or self.faker.pybool(),
-            randomised_trial = kwargs.get('randomised_trial') or self.faker.pybool(),
+            first_in_human = first_in_human,
+            link_to_nihr_transactional_research_collaboration = link_to_nihr_transactional_research_collaboration,
+            crn_rdn_portfolio_study = crn_rdn_portfolio_study,
+            rec_approval_required = rec_approval_required,
+            randomised_trial = randomised_trial,
 
             project_status =  self.faker.project_status().get_value_or_get(kwargs, 'project_status', lookups_in_db),
             theme =  self.faker.theme().get_value_or_get(kwargs, 'theme', lookups_in_db),

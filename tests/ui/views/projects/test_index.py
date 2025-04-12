@@ -95,3 +95,37 @@ def test__search__yesno(client, faker, loggedin_user, standard_lookups, n, field
 
     search_params = {field: value}
     resp = _get(client, _url(**search_params), loggedin_user, faker, has_form=False, expected_count=n)
+
+
+@pytest.mark.parametrize(
+    "n", [1, 2, 3],
+)
+@pytest.mark.parametrize(
+    "field, cls", [
+        ('project_status', ProjectStatus),
+        ('theme', Theme),
+        ('ukcrc_health_category', UkcrcHealthCategory),
+        ('nihr_priority_area', NihrPriorityArea),
+        ('ukcrc_research_activity_code', UkcrcResearchActivityCode),
+        ('racs_sub_category', RacsSubCategory),
+        ('research_type', ResearchType),
+        ('methodology', Methodology),
+        ('expected_impact', ExpectedImpact),
+        ('trial_phase', TrialPhase),
+        ('main_funding_source', MainFundingSource),
+        ('main_funding_category', MainFundingCategory),
+        ('main_funding_dhsc_nihr_funding', MainFundingDhscNihrFunding),
+        ('main_funding_industry', MainFundingIndustry),
+    ],
+)
+def test__search__string(client, faker, loggedin_user, standard_lookups, n, field, cls):
+    for _ in range(30):
+        faker.project().get_in_db()
+    this_value = faker.lookup_creator(cls).get_in_db()
+    for i in range(n):
+        params = {field: this_value}
+        faker.project().get_in_db(**params)
+
+    search_params = {f"{field}_id": this_value.id}
+
+    resp = _get(client, _url(**search_params), loggedin_user, faker, has_form=False, expected_count=n)
