@@ -61,6 +61,7 @@ class ProjectFakeCreator(FakeCreator):
 
             local_rec_number = kwargs.get('local_rec_number') or self.faker.unique.pystr(min_chars=8, max_chars=8),
             iras_number = kwargs.get('iras_number') or self.faker.unique.pystr(min_chars=8, max_chars=8),
+            cpms_id = kwargs.get('cpms_id') or self.faker.unique.pystr(min_chars=8, max_chars=8),
 
             start_date = kwargs.get('start_date') or self.faker.date_object(),
             end_date = kwargs.get('end_date') or self.faker.date_object(),

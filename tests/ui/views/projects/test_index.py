@@ -64,7 +64,7 @@ def test__get__n(client, faker, loggedin_user, standard_lookups, n):
     "n", [1, 2, 3],
 )
 @pytest.mark.parametrize(
-    "field", ['title', 'summary', 'comments', 'local_rec_number', 'iras_number'],
+    "field", ['title', 'summary', 'comments', 'local_rec_number', 'iras_number', 'cpms_id'],
 )
 def test__search__string(client, faker, loggedin_user, standard_lookups, n, field):
     for _ in range(30):

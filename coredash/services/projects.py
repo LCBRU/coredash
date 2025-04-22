@@ -79,3 +79,40 @@ def project_search_query(search_data=None):
         q = q.where(Project.main_funding_industry_id == x)
 
     return q
+
+
+def project_save(project, data):
+    project.title = data['title']
+    project.summary = data['summary']
+    project.comments = data['comments']
+    project.local_rec_number = data['local_rec_number']
+    project.iras_number = data['iras_number']
+    project.cpms_id = data['cpms_id']
+    project.start_date = data['start_date']
+    project.end_date = data['end_date']
+    project.participants_recruited_to_centre_fy = data['participants_recruited_to_centre_fy']
+    project.brc_funding = data['brc_funding']
+    project.main_funding_brc_funding = data['main_funding_brc_funding']
+    project.total_external_funding_award = data['total_external_funding_award']
+    project.sensitive = data['sensitive']
+    project.first_in_human = data['first_in_human']
+    project.link_to_nihr_transactional_research_collaboration = data['link_to_nihr_transactional_research_collaboration']
+    project.crn_rdn_portfolio_study = data['crn_rdn_portfolio_study']
+    project.rec_approval_required = data['rec_approval_required']
+    project.randomised_trial = data['randomised_trial']
+    project.project_status_id = data['project_status_id']
+    project.theme_id = data['theme_id']
+    project.ukcrc_health_category_id = data['ukcrc_health_category_id']
+    project.nihr_priority_area_id = data['nihr_priority_area_id']
+    project.ukcrc_research_activity_code_id = data['ukcrc_research_activity_code_id']
+    project.racs_sub_category_id = data['racs_sub_category_id']
+    project.research_type_id = data['research_type_id']
+    project.methodology_id = data['methodology_id']
+    project.expected_impact_id = data['expected_impact_id']
+    project.trial_phase_id = data['trial_phase_id']
+    project.main_funding_source_id = data['main_funding_source_id']
+    project.main_funding_category_id = data['main_funding_category_id']
+    project.main_funding_dhsc_nihr_funding_id = data['main_funding_dhsc_nihr_funding_id']
+    project.main_funding_industry_id = data['main_funding_industry_id']
+
+    db.session.add(project)
