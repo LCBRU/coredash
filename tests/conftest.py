@@ -6,8 +6,8 @@ from coredash.config import TestConfig
 from coredash import create_app
 from lbrc_flask.pytest.faker import LbrcFlaskFakerProvider, LbrcFileProvider
 from lbrc_flask.pytest.helpers import login
-from coredash.security import ROLENAME_PROJECT_EDITOR, init_authorization
-from tests.faker import CoreDashLookupProvider, ProjectProvider
+from coredash.security import ROLENAME_FINANCE_UPLOADER, ROLENAME_PROJECT_EDITOR, init_authorization
+from tests.faker import CoreDashLookupProvider, FinanceUploadProvider, ProjectProvider
 
 
 @pytest.fixture(scope="function")
@@ -30,6 +30,14 @@ def loggedin_user_project_editor(client, faker):
 
 
 @pytest.fixture(scope="function")
+def loggedin_user_finance_uploader(client, faker):
+    init_authorization()
+
+    user = faker.get_test_user(rolename=ROLENAME_FINANCE_UPLOADER)
+    return login(client, faker, user)
+
+
+@pytest.fixture(scope="function")
 def app():
     yield create_app(TestConfig)
 
@@ -43,5 +51,7 @@ def faker():
     result.add_provider(LbrcFileProvider)
     result.add_provider(CoreDashLookupProvider)
     result.add_provider(ProjectProvider)
+    result.add_provider(FinanceUploadProvider)
+    
 
     yield result

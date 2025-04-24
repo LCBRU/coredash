@@ -1,5 +1,5 @@
 from lbrc_flask.database import db
-from sqlalchemy import or_, select
+from sqlalchemy import delete, or_, select
 from coredash.model.project import Project, ProjectStatus
 
 
@@ -79,6 +79,12 @@ def project_search_query(search_data=None):
         q = q.where(Project.main_funding_industry_id == x)
 
     return q
+
+
+def projects_save(data):
+    db.session.execute(delete(Project))
+    for d in data:
+        project_save(Project(), d)
 
 
 def project_save(project, data):

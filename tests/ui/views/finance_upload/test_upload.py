@@ -1,7 +1,4 @@
-import copy
 from io import BytesIO
-from pprint import pp
-from random import choice
 import pytest
 from flask import url_for
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__input_file, assert__refresh_response, assert__requires_role
@@ -10,9 +7,8 @@ from lbrc_flask.python_helpers import dictlist_remove_key
 from sqlalchemy import func, select
 from coredash.model.finance_upload import FinanceUpload, FinanceUploadColumnDefinition
 from coredash.model.project import Project
-from tests import convert_specimens_to_spreadsheet_data
-from tests.requests import phage_catalogue_modal_get
-from tests.ui.views.projects import convert_project_to_form_data
+from tests import convert_projects_to_spreadsheet_data
+from tests.requests import coredash_modal_get
 
 
 def _url(external=True, **kwargs):
@@ -20,7 +16,7 @@ def _url(external=True, **kwargs):
 
 
 def _get(client, url, loggedin_user, has_form):
-    resp = phage_catalogue_modal_get(client, url, loggedin_user, has_form)
+    resp = coredash_modal_get(client, url, loggedin_user, has_form)
 
     assert__input_file(resp.soup, 'finance_file')
 
@@ -38,12 +34,12 @@ def _post(client, url, file, filename):
     return client.post(url, data=data)
 
 
-def _post_upload_data(client, faker, data, expected_status, expected_errors, expected_specimens):
+def _post_upload_data(client, faker, data, expected_status, expected_errors, expected_projects):
     file = faker.xlsx(headers=FinanceUploadColumnDefinition().column_names, data=data)
-    _post_upload_file(client, expected_status, expected_errors, expected_specimens, file)
+    _post_upload_file(client, expected_status, expected_errors, expected_projects, file)
 
 
-def _post_upload_file(client, expected_status, expected_errors, expected_specimens, file):
+def _post_upload_file(client, expected_status, expected_errors, expected_projects, file):
     resp = _post(client, _url(external=False), file.get_iostream(), file.filename)
     assert__refresh_response(resp)
 
@@ -55,7 +51,7 @@ def _post_upload_file(client, expected_status, expected_errors, expected_specime
         print(out.errors)
         assert len(out.errors) == 0
     assert out.status == expected_status
-    assert db.session.execute(select(func.count(Project.id))).scalar() == expected_specimens
+    assert db.session.execute(select(func.count(Project.id))).scalar() == expected_projects
 
 
 def test__get__requires_login(client):
@@ -67,12 +63,16 @@ def test__get__requires_editor_login__not(client, loggedin_user):
 
 
 @pytest.mark.app_crsf(True)
-def test__get__has_form(client, loggedin_user_uploader):
-    _get(client, _url(external=False), loggedin_user_uploader, has_form=True)
+def test__get__has_form(client, loggedin_user_finance_uploader):
+    _get(client, _url(external=False), loggedin_user_finance_uploader, has_form=True)
 
 
-def test__post__valid_file__insert(client, faker, loggedin_user_uploader, standard_lookups, data_source):
+def test__post__valid_file__insert(client, faker, loggedin_user_finance_uploader, standard_lookups):
     data = faker.finance_spreadsheet_data()
+
+    print('1 VVVVVVVVVVVVVVVVV')
+    print(data)
+    print('1 ^^^^^^^^^^^^^^^^^')
 
     _post_upload_data(
         client,
@@ -80,17 +80,15 @@ def test__post__valid_file__insert(client, faker, loggedin_user_uploader, standa
         data,
         expected_status=FinanceUpload.STATUS__AWAITING_PROCESSING,
         expected_errors="",
-        expected_specimens=len(data),
+        expected_projects=len(data),
         )
 
-    # Remove Keys as the data has no keys, but they will be
-    # given one when they are saved
-    actual = dictlist_remove_key(convert_project_to_form_data(db.session.execute(select(Specimen)).scalars()), 'key')
-    expected = dictlist_remove_key(data, 'key')
+    actual = convert_projects_to_spreadsheet_data(db.session.execute(select(Project)).scalars())
+    expected = data
     assert expected == actual
 
 
-def test__post__valid_file__update(client, faker, loggedin_user_uploader, standard_lookups, data_source):
+def test__post__valid_file__update(client, faker, loggedin_user_finance_uploader, standard_lookups):
     rows = 10
     existing = [faker.project().get_in_db() for _ in range(rows)]
     data = faker.finance_spreadsheet_data(rows=rows)
@@ -104,12 +102,12 @@ def test__post__valid_file__update(client, faker, loggedin_user_uploader, standa
         data,
         expected_status=FinanceUpload.STATUS__AWAITING_PROCESSING,
         expected_errors="",
-        expected_specimens=len(data),
+        expected_projects=len(data),
         )
 
     # Remove Keys as the data has no keys, but they will be
     # given one when they are saved
-    actual = convert_specimens_to_spreadsheet_data(db.session.execute(select(Specimen)).scalars())
+    actual = convert_projects_to_spreadsheet_data(db.session.execute(select(Project)).scalars())
     expected = data
 
     assert expected == actual
@@ -118,7 +116,7 @@ def test__post__valid_file__update(client, faker, loggedin_user_uploader, standa
 @pytest.mark.parametrize(
     "missing_column_name", FinanceUploadColumnDefinition().column_names,
 )
-def test__post__missing_column(client, faker, loggedin_user_uploader, standard_lookups, missing_column_name):
+def test__post__missing_column(client, faker, loggedin_user_finance_uploader, standard_lookups, missing_column_name):
     columns_to_include = set(FinanceUploadColumnDefinition().column_names) - set([missing_column_name])
 
     data = faker.specimen_spreadsheet_data()
@@ -129,7 +127,7 @@ def test__post__missing_column(client, faker, loggedin_user_uploader, standard_l
         client=client,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors=f"Missing column '{missing_column_name}'",
-        expected_specimens=0,
+        expected_projects=0,
         file=file,
     )
 
@@ -137,7 +135,7 @@ def test__post__missing_column(client, faker, loggedin_user_uploader, standard_l
 @pytest.mark.parametrize(
     "casing", ['lower', 'upper', 'title'],
 )
-def test__post__case_insenstive_column_names(client, faker, loggedin_user_uploader, standard_lookups, casing):
+def test__post__case_insenstive_column_names(client, faker, loggedin_user_finance_uploader, standard_lookups, casing):
     match casing:
         case 'lower':
             columns_to_include = [cn.lower() for cn in FinanceUploadColumnDefinition().column_names]
@@ -153,13 +151,13 @@ def test__post__case_insenstive_column_names(client, faker, loggedin_user_upload
         client,
         expected_status=FinanceUpload.STATUS__AWAITING_PROCESSING,
         expected_errors="",
-        expected_specimens=len(data),
+        expected_projects=len(data),
         file=file,
         )
 
     # Remove Keys as the data has no keys, but they will be
     # given one when they are saved
-    actual = dictlist_remove_key(convert_specimens_to_spreadsheet_data(db.session.execute(select(Specimen)).scalars()), 'key')
+    actual = dictlist_remove_key(convert_projects_to_spreadsheet_data(db.session.execute(select(Project)).scalars()), 'key')
     expected = dictlist_remove_key(data, 'key')
     assert expected == actual
 
@@ -167,7 +165,7 @@ def test__post__case_insenstive_column_names(client, faker, loggedin_user_upload
 @pytest.mark.parametrize(
     "invalid_column", ['freezer', 'drawer', 'date'],
 )
-def test__post__invalid_column_type(client, faker, loggedin_user_uploader, standard_lookups, invalid_column):
+def test__post__invalid_column_type(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
     data = faker.finance_spreadsheet_data(rows=1)
     data[0][invalid_column] = faker.pystr()
 
@@ -177,14 +175,14 @@ def test__post__invalid_column_type(client, faker, loggedin_user_uploader, stand
         data=data,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors=f"Row 1: {invalid_column}: Invalid value",
-        expected_specimens=0,
+        expected_projects=0,
     )
 
 
 @pytest.mark.parametrize(
     "invalid_column", ['position', 'box_number', 'bacterial species', 'strain', 'media', 'plasmid name', 'resistance marker', 'project', 'storage method'],
 )
-def test__post__invalid_column_length_bacterium(client, faker, loggedin_user_uploader, standard_lookups, invalid_column):
+def test__post__invalid_column_length_bacterium(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
     max_length = FinanceUploadColumnDefinition().definition_for_column_name(invalid_column).max_length
 
     data = faker.finance_spreadsheet_data(rows=1)
@@ -196,14 +194,14 @@ def test__post__invalid_column_length_bacterium(client, faker, loggedin_user_upl
         data=data,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors=f"Row 1: {invalid_column}: Text is longer than {max_length} characters",
-        expected_specimens=0,
+        expected_projects=0,
     )
 
 
 @pytest.mark.parametrize(
     "invalid_column", ['position', 'box_number', 'phage id', 'host species', 'project', 'storage method'],
 )
-def test__post__invalid_column_length_phage(client, faker, loggedin_user_uploader, standard_lookups, invalid_column):
+def test__post__invalid_column_length_phage(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
     max_length = FinanceUploadColumnDefinition().definition_for_column_name(invalid_column).max_length
 
     data = faker.phage_spreadsheet_data(rows=1)
@@ -215,14 +213,14 @@ def test__post__invalid_column_length_phage(client, faker, loggedin_user_uploade
         data=data,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors=f"Row 1: {invalid_column}: Text is longer than {max_length} characters",
-        expected_specimens=0,
+        expected_projects=0,
     )
 
 
 @pytest.mark.parametrize(
     "added_column", ['bacterial species', 'strain', 'media', 'plasmid name', 'resistance marker'],
 )
-def test__post__phage_with_bacteria_data(client, faker, loggedin_user_uploader, standard_lookups, added_column):
+def test__post__phage_with_bacteria_data(client, faker, loggedin_user_finance_uploader, standard_lookups, added_column):
     data = faker.finance_spreadsheet_data(rows=1)
     data[0][added_column] = faker.pystr(min_chars=1, max_chars=5)
 
@@ -232,14 +230,14 @@ def test__post__phage_with_bacteria_data(client, faker, loggedin_user_uploader, 
         data=data,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors="Row 1: contains columns for both bacteria and phages",
-        expected_specimens=0,
+        expected_projects=0,
     )
 
 
 @pytest.mark.parametrize(
     "added_column", ['phage id', 'host species'],
 )
-def test__post__bacterium_with_phage_data(client, faker, loggedin_user_uploader, standard_lookups, added_column):
+def test__post__bacterium_with_phage_data(client, faker, loggedin_user_finance_uploader, standard_lookups, added_column):
     data = faker.finance_spreadsheet_data(rows=1)
     data[0][added_column] = faker.pystr(min_chars=1, max_chars=5)
 
@@ -249,7 +247,7 @@ def test__post__bacterium_with_phage_data(client, faker, loggedin_user_uploader,
         data=data,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors="Row 1: contains columns for both bacteria and phages",
-        expected_specimens=0,
+        expected_projects=0,
     )
 
 
@@ -259,7 +257,7 @@ def test__post__bacterium_with_phage_data(client, faker, loggedin_user_uploader,
 @pytest.mark.parametrize(
     "value", ['', None, ' '],
 )
-def test__post__phage_with_missing_data(client, faker, loggedin_user_uploader, standard_lookups, missing_data, value):
+def test__post__phage_with_missing_data(client, faker, loggedin_user_finance_uploader, standard_lookups, missing_data, value):
     data = faker.finance_spreadsheet_data(rows=1)
     data[0][missing_data] = value
 
@@ -269,7 +267,7 @@ def test__post__phage_with_missing_data(client, faker, loggedin_user_uploader, s
         data,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors="Row 1: does not contain enough information",
-        expected_specimens=0,
+        expected_projects=0,
         )
 
 
@@ -279,7 +277,7 @@ def test__post__phage_with_missing_data(client, faker, loggedin_user_uploader, s
 @pytest.mark.parametrize(
     "value", ['', None, ' '],
 )
-def test__post__bacterium_with_missing_data(client, faker, loggedin_user_uploader, standard_lookups, missing_data, value):
+def test__post__bacterium_with_missing_data(client, faker, loggedin_user_finance_uploader, standard_lookups, missing_data, value):
     data = faker.finance_spreadsheet_data(rows=1)
     data[0][missing_data] = value
 
@@ -289,11 +287,11 @@ def test__post__bacterium_with_missing_data(client, faker, loggedin_user_uploade
         data=data,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors="Row 1: does not contain enough information",
-        expected_specimens=0,
+        expected_projects=0,
     )
 
 
-def test__post__specimen__key_does_not_exist(client, faker, loggedin_user_uploader, standard_lookups, data_source):
+def test__post__specimen__key_does_not_exist(client, faker, loggedin_user_finance_uploader, standard_lookups):
     data = faker.finance_spreadsheet_data(rows=1)
 
     data[0]['key'] = 673
@@ -304,11 +302,11 @@ def test__post__specimen__key_does_not_exist(client, faker, loggedin_user_upload
         data=data,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors="Row 1: Key does not exist",
-        expected_specimens=0,
+        expected_projects=0,
     )
 
 
-def test__post__specimen__key_for_wrong_type_of_specimen(client, faker, loggedin_user_uploader, standard_lookups, data_source):
+def test__post__specimen__key_for_wrong_type_of_specimen(client, faker, loggedin_user_finance_uploader, standard_lookups):
     existing = faker.project().get_in_db()
     data = faker.finance_spreadsheet_data(rows=1)
 
@@ -320,11 +318,11 @@ def test__post__specimen__key_for_wrong_type_of_specimen(client, faker, loggedin
         data=data,
         expected_status=FinanceUpload.STATUS__ERROR,
         expected_errors="Row 1: Key is for the wrong type of specimen",
-        expected_specimens=1,
+        expected_projects=1,
     )
 
 
-# def test__post__bacterium__invalid_species(client, faker, loggedin_user_uploader, standard_lookups):
+# def test__post__bacterium__invalid_species(client, faker, loggedin_user_finance_uploader, standard_lookups):
 #     data = faker.bacteria_spreadsheet_data(rows=1)
 #     data[0]['bacterial species'] = 'This doesnt exist'
 
@@ -338,7 +336,7 @@ def test__post__specimen__key_for_wrong_type_of_specimen(client, faker, loggedin
 #     )
 
 
-# def test__post__phage__invalid_host(client, faker, loggedin_user_uploader, standard_lookups):
+# def test__post__phage__invalid_host(client, faker, loggedin_user_finance_uploader, standard_lookups):
 #     data = faker.phage_spreadsheet_data(rows=1)
 #     data[0]['host species'] = 'This doesnt exist'
 
@@ -352,8 +350,8 @@ def test__post__specimen__key_for_wrong_type_of_specimen(client, faker, loggedin
 #     )
 
 
-# def test__post__new_lookup_values__bacterium(client, faker, loggedin_user_uploader):
-#     data = convert_specimens_to_spreadsheet_data([faker.bacterium().get(
+# def test__post__new_lookup_values__bacterium(client, faker, loggedin_user_finance_uploader):
+#     data = convert_projects_to_spreadsheet_data([faker.bacterium().get(
 #         species=faker.bacterial_species().get_in_db(),
 #         lookups_in_db=False,
 #         )])
@@ -380,8 +378,8 @@ def test__post__specimen__key_for_wrong_type_of_specimen(client, faker, loggedin
 #     assert db.session.execute(select(func.count(BoxNumber.id)).where(BoxNumber.name == expected['box_number'])).scalar() == 1
 
 
-# def test__post__new_lookup_values__phage(client, faker, loggedin_user_uploader):
-#     data = convert_specimens_to_spreadsheet_data([faker.phage().get(
+# def test__post__new_lookup_values__phage(client, faker, loggedin_user_finance_uploader):
+#     data = convert_projects_to_spreadsheet_data([faker.phage().get(
 #         host=faker.bacterial_species().get_in_db(),
 #         lookups_in_db=False,
 #         )])

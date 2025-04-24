@@ -1,6 +1,9 @@
+from random import choice
+from coredash.model.finance_upload import FinanceUpload
 from coredash.model.lookups import Theme
 from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 from lbrc_flask.pytest.faker import BaseProvider, LookupProvider, FakeCreator
+from tests import convert_projects_to_spreadsheet_data
 
 
 class CoreDashLookupProvider(LookupProvider):
@@ -100,3 +103,30 @@ class ProjectFakeCreator(FakeCreator):
 class ProjectProvider(BaseProvider):
     def project(self):
         return ProjectFakeCreator()
+
+
+class FinanceUploadFakeCreator(FakeCreator):
+    def __init__(self):
+        super().__init__(FinanceUpload)
+
+    def get(self, **kwargs):
+        return self.cls(
+            filename = kwargs.get('filename') or self.faker.file_name(extension='xslx'),
+            status = kwargs.get('status') or choice(FinanceUpload.STATUS_NAMES),
+            errors = kwargs.get('errors') or '\n'.join([self.faker.sentence() for _ in range(5)]),
+        )
+
+
+class FinanceUploadProvider(BaseProvider):
+    def finance_upload(self):
+        return FinanceUploadFakeCreator()
+
+    def finance_spreadsheet_data(self, rows=10):
+        result = []
+
+        for _ in range(rows):
+            result.append(self.generator.project().get())
+        
+        return convert_projects_to_spreadsheet_data(result)
+
+

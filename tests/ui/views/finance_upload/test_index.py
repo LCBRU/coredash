@@ -27,18 +27,18 @@ def test__get__requires_editor_login__not(client, loggedin_user):
     assert__requires_role(client, _url(external=False))
 
 
-def test__get__one(client, faker, loggedin_user_uploader, standard_lookups):
+def test__get__one(client, faker, loggedin_user_finance_uploader, standard_lookups):
     fu = faker.finance_upload().get_in_db()
-    resp = _get(client, _url(), loggedin_user_uploader, has_form=False, expected_count=1)
+    resp = _get(client, _url(), loggedin_user_finance_uploader, has_form=False, expected_count=1)
 
 
-def test__search__one_found(client, faker, loggedin_user_uploader, standard_lookups):
+def test__search__one_found(client, faker, loggedin_user_finance_uploader, standard_lookups):
     fus = [faker.finance_upload().get_in_db() for _ in range(10)]
 
-    resp = _get(client, _url(search=fus[0].filename), loggedin_user_uploader, has_form=False, expected_count=1)
+    resp = _get(client, _url(search=fus[0].filename), loggedin_user_finance_uploader, has_form=False, expected_count=1)
 
 
-def test__search__none_found(client, faker, loggedin_user_uploader, standard_lookups):
+def test__search__none_found(client, faker, loggedin_user_finance_uploader, standard_lookups):
     fu = faker.finance_upload().get_in_db(filename='not_there.xslx')
 
-    resp = _get(client, _url(search='suttin_else.xslx'), loggedin_user_uploader, has_form=False, expected_count=0)
+    resp = _get(client, _url(search='suttin_else.xslx'), loggedin_user_finance_uploader, has_form=False, expected_count=0)
