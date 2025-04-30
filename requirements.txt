@@ -59,6 +59,8 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.3.0
     # via celery
+coverage==7.8.0
+    # via pytest-cov
 cssselect2==0.8.0
     # via
     #   cairosvg
@@ -73,6 +75,8 @@ email-validator==2.2.0
     #   lbrc-flask
 et-xmlfile==2.0.0
     # via openpyxl
+execnet==2.1.1
+    # via pytest-xdist
 faker==37.1.0
     # via lbrc-flask
 flask==3.1.0
@@ -189,6 +193,13 @@ pymysql==1.1.1
 pyphen==0.17.2
     # via weasyprint
 pytest==8.3.5
+    # via
+    #   lbrc-flask
+    #   pytest-cov
+    #   pytest-xdist
+pytest-cov==6.1.1
+    # via lbrc-flask
+pytest-xdist==3.6.1
     # via lbrc-flask
 python-dateutil==2.9.0.post0
     # via

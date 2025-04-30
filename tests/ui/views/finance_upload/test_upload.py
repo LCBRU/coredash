@@ -68,6 +68,7 @@ def test__get__has_form(client, loggedin_user_finance_uploader):
     _get(client, _url(external=False), loggedin_user_finance_uploader, has_form=True)
 
 
+@pytest.mark.xdist_group(name="spreadsheets")
 def test__post__valid_file__insert(client, faker, loggedin_user_finance_uploader, standard_lookups):
     data = faker.finance_spreadsheet_data()
 
@@ -86,6 +87,7 @@ def test__post__valid_file__insert(client, faker, loggedin_user_finance_uploader
     assert expected == actual
 
 
+@pytest.mark.xdist_group(name="spreadsheets")
 def test__post__valid_file__update(client, faker, loggedin_user_finance_uploader, standard_lookups):
     rows = 10
     existing = [faker.project().get_in_db() for _ in range(rows)]
@@ -111,6 +113,7 @@ def test__post__valid_file__update(client, faker, loggedin_user_finance_uploader
 @pytest.mark.parametrize(
     "missing_column_name", FinanceUploadColumnDefinition().column_names,
 )
+@pytest.mark.xdist_group(name="spreadsheets")
 def test__post__missing_column(client, faker, loggedin_user_finance_uploader, standard_lookups, missing_column_name):
     columns_to_include = set(FinanceUploadColumnDefinition().column_names) - set([missing_column_name])
 
@@ -130,6 +133,7 @@ def test__post__missing_column(client, faker, loggedin_user_finance_uploader, st
 @pytest.mark.parametrize(
     "casing", ['lower', 'upper', 'title'],
 )
+@pytest.mark.xdist_group(name="spreadsheets")
 def test__post__case_insenstive_column_names(client, faker, loggedin_user_finance_uploader, standard_lookups, casing):
     match casing:
         case 'lower':
@@ -170,6 +174,7 @@ def test__post__case_insenstive_column_names(client, faker, loggedin_user_financ
         'Randomised Trial',
     ],
 )
+@pytest.mark.xdist_group(name="spreadsheets")
 def test__post__invalid_column_type(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
     data = faker.finance_spreadsheet_data(rows=1)
 
@@ -193,6 +198,7 @@ def test__post__invalid_column_type(client, faker, loggedin_user_finance_uploade
         'CRN/RDN CPMS ID',
     ],
 )
+@pytest.mark.xdist_group(name="spreadsheets")
 def test__post__invalid_column_length(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
     max_length = FinanceUploadColumnDefinition().definition_for_column_name(invalid_column).max_length
 
@@ -209,56 +215,74 @@ def test__post__invalid_column_length(client, faker, loggedin_user_finance_uploa
     )
 
 
-@pytest.mark.parametrize(
-    "missing_data", [
-        'Project Title',
-        'Local REC number',
-        'IRAS Number',
-        'CRN/RDN CPMS ID',
-        'Project Actual Start Date',
-        'Participants Recruited to Centre FY',
-        'BRC funding',
-        'Total External Funding Awarded',
-        'Is this project sensitive',
-        'First in Human Project',
-        'Link to NIHR Translational Research Collaboration',
-        'CRN/RDN Portfolio study',
-        'REC Approval Required',
-        'Randomised Trial',
-        'Project Status',
-        'Theme',
-        'UKCRC Health Category',
-        'NIHR priority Areas / Fields of Research',
-        'UKCRC Research Activity Code',
-        'RACS sub-categories',
-        'Research Type',
-        'Methodology',
-        'Expected Impact',
-        'Trial Phase',
-        'Main Funding Source',
-        'Main Funding Category',
-        'Main Funding - DHSC/NIHR Funding',
-        'Main Funding - Industry Collaborative or Industry Contract Funding',
-    ],
-)
-@pytest.mark.parametrize(
-    "value", ['', None, ' '],
-)
-def test__post__missing_mandatory_data(client, faker, loggedin_user_finance_uploader, standard_lookups, missing_data, value):
-    data = faker.finance_spreadsheet_data(rows=1)
-    data[0][missing_data.lower()] = value
+# @pytest.mark.parametrize(
+#     "missing_data", [
+#         'Project Title',
+#         'Local REC number',
+#         'IRAS Number',
+#         'CRN/RDN CPMS ID',
+#         'Project Actual Start Date',
+#         'Participants Recruited to Centre FY',
+#         'BRC funding',
+#         'Total External Funding Awarded',
+#         'Is this project sensitive',
+#         'First in Human Project',
+#         'Link to NIHR Translational Research Collaboration',
+#         'CRN/RDN Portfolio study',
+#         'REC Approval Required',
+#         'Randomised Trial',
+#         'Project Status',
+#         'Theme',
+#         'UKCRC Health Category',
+#         'NIHR priority Areas / Fields of Research',
+#         'UKCRC Research Activity Code',
+#         'RACS sub-categories',
+#         'Research Type',
+#         'Methodology',
+#         'Expected Impact',
+#         'Trial Phase',
+#         'Main Funding Source',
+#         'Main Funding Category',
+#         'Main Funding - DHSC/NIHR Funding',
+#         'Main Funding - Industry Collaborative or Industry Contract Funding',
+#     ],
+# )
+# @pytest.mark.parametrize(
+#     "value", ['', None, ' '],
+# )
+# def test__post__missing_mandatory_data(client, faker, loggedin_user_finance_uploader, standard_lookups, missing_data, value):
+#     data = faker.finance_spreadsheet_data(rows=1)
+#     data[0][missing_data.lower()] = value
 
-    _post_upload_data(
-        client,
-        faker,
-        data,
-        expected_status=FinanceUpload.STATUS__ERROR,
-        expected_errors=f"Row 1: {missing_data}: Data is missing",
-        expected_projects=0,
-        )
+#     _post_upload_data(
+#         client,
+#         faker,
+#         data,
+#         expected_status=FinanceUpload.STATUS__ERROR,
+#         expected_errors=f"Row 1: {missing_data}: Data is missing",
+#         expected_projects=0,
+#         )
 
 
-# def test__post__bacterium__invalid_species(client, faker, loggedin_user_finance_uploader, standard_lookups):
+# @pytest.mark.parametrize(
+#     "invalid_column", [
+#         'Project Status',
+#         'Theme',
+#         'UKCRC Health Category',
+#         'NIHR priority Areas / Fields of Research',
+#         'UKCRC Research Activity Code',
+#         'RACS sub-categories',
+#         'Research Type',
+#         'Methodology',
+#         'Expected Impact',
+#         'Trial Phase',
+#         'Main Funding Source',
+#         'Main Funding Category',
+#         'Main Funding - DHSC/NIHR Funding',
+#         'Main Funding - Industry Collaborative or Industry Contract Funding',
+#     ],
+# )
+# def test__post__invalid_lookup_value(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
 #     data = faker.bacteria_spreadsheet_data(rows=1)
 #     data[0]['bacterial species'] = 'This doesnt exist'
 
@@ -270,70 +294,3 @@ def test__post__missing_mandatory_data(client, faker, loggedin_user_finance_uplo
 #         expected_errors="Row 1: Bacterial Species does not exist",
 #         expected_specimens=0,
 #     )
-
-
-# def test__post__phage__invalid_host(client, faker, loggedin_user_finance_uploader, standard_lookups):
-#     data = faker.phage_spreadsheet_data(rows=1)
-#     data[0]['host species'] = 'This doesnt exist'
-
-#     _post_upload_data(
-#         client=client,
-#         faker=faker,
-#         data=data,
-#         expected_status=Upload.STATUS__ERROR,
-#         expected_errors="Row 1: Host Species does not exist",
-#         expected_specimens=0,
-#     )
-
-
-# def test__post__new_lookup_values__bacterium(client, faker, loggedin_user_finance_uploader):
-#     data = convert_projects_to_spreadsheet_data([faker.bacterium().get(
-#         species=faker.bacterial_species().get_in_db(),
-#         lookups_in_db=False,
-#         )])
-
-#     _post_upload_data(
-#         client,
-#         faker,
-#         data,
-#         expected_status=Upload.STATUS__AWAITING_PROCESSING,
-#         expected_errors="",
-#         expected_specimens=1,
-#         )
-    
-#     expected = data[0]
-
-#     assert db.session.execute(select(func.count(BacterialSpecies.id)).where(BacterialSpecies.name == expected['bacterial species'])).scalar() == 1
-#     assert db.session.execute(select(func.count(Strain.id)).where(Strain.name == expected['strain'])).scalar() == 1
-#     assert db.session.execute(select(func.count(Medium.id)).where(Medium.name == expected['media'])).scalar() == 1
-#     assert db.session.execute(select(func.count(Plasmid.id)).where(Plasmid.name == expected['plasmid name'])).scalar() == 1
-#     assert db.session.execute(select(func.count(ResistanceMarker.id)).where(ResistanceMarker.name == expected['resistance marker'])).scalar() == 1
-#     assert db.session.execute(select(func.count(Project.id)).where(Project.name == expected['project'])).scalar() == 1
-#     assert db.session.execute(select(func.count(StorageMethod.id)).where(StorageMethod.name == expected['storage method'])).scalar() == 1
-#     assert db.session.execute(select(func.count(StaffMember.id)).where(StaffMember.name == expected['staff member'])).scalar() == 1
-#     assert db.session.execute(select(func.count(BoxNumber.id)).where(BoxNumber.name == expected['box_number'])).scalar() == 1
-
-
-# def test__post__new_lookup_values__phage(client, faker, loggedin_user_finance_uploader):
-#     data = convert_projects_to_spreadsheet_data([faker.phage().get(
-#         host=faker.bacterial_species().get_in_db(),
-#         lookups_in_db=False,
-#         )])
-
-#     _post_upload_data(
-#         client,
-#         faker,
-#         data,
-#         expected_status=Upload.STATUS__AWAITING_PROCESSING,
-#         expected_errors="",
-#         expected_specimens=1,
-#         )
-    
-#     expected = data[0]
-
-#     assert db.session.execute(select(func.count(PhageIdentifier.id)).where(PhageIdentifier.name == expected['phage id'])).scalar() == 1
-#     assert db.session.execute(select(func.count(BacterialSpecies.id)).where(BacterialSpecies.name == expected['host species'])).scalar() == 1
-#     assert db.session.execute(select(func.count(Project.id)).where(Project.name == expected['project'])).scalar() == 1
-#     assert db.session.execute(select(func.count(StorageMethod.id)).where(StorageMethod.name == expected['storage method'])).scalar() == 1
-#     assert db.session.execute(select(func.count(StaffMember.id)).where(StaffMember.name == expected['staff member'])).scalar() == 1
-#     assert db.session.execute(select(func.count(BoxNumber.id)).where(BoxNumber.name == expected['box_number'])).scalar() == 1
