@@ -215,53 +215,54 @@ def test__post__invalid_column_length(client, faker, loggedin_user_finance_uploa
     )
 
 
-# @pytest.mark.parametrize(
-#     "missing_data", [
-#         'Project Title',
-#         'Local REC number',
-#         'IRAS Number',
-#         'CRN/RDN CPMS ID',
-#         'Project Actual Start Date',
-#         'Participants Recruited to Centre FY',
-#         'BRC funding',
-#         'Total External Funding Awarded',
-#         'Is this project sensitive',
-#         'First in Human Project',
-#         'Link to NIHR Translational Research Collaboration',
-#         'CRN/RDN Portfolio study',
-#         'REC Approval Required',
-#         'Randomised Trial',
-#         'Project Status',
-#         'Theme',
-#         'UKCRC Health Category',
-#         'NIHR priority Areas / Fields of Research',
-#         'UKCRC Research Activity Code',
-#         'RACS sub-categories',
-#         'Research Type',
-#         'Methodology',
-#         'Expected Impact',
-#         'Trial Phase',
-#         'Main Funding Source',
-#         'Main Funding Category',
-#         'Main Funding - DHSC/NIHR Funding',
-#         'Main Funding - Industry Collaborative or Industry Contract Funding',
-#     ],
-# )
-# @pytest.mark.parametrize(
-#     "value", ['', None, ' '],
-# )
-# def test__post__missing_mandatory_data(client, faker, loggedin_user_finance_uploader, standard_lookups, missing_data, value):
-#     data = faker.finance_spreadsheet_data(rows=1)
-#     data[0][missing_data.lower()] = value
+@pytest.mark.parametrize(
+    "missing_data", [
+        'Project Title',
+        'Local REC number',
+        'IRAS Number',
+        'CRN/RDN CPMS ID',
+        'Project Actual Start Date',
+        'Participants Recruited to Centre FY',
+        'BRC funding',
+        'Total External Funding Awarded',
+        'Is this project sensitive',
+        'First in Human Project',
+        'Link to NIHR Translational Research Collaboration',
+        'CRN/RDN Portfolio study',
+        'REC Approval Required',
+        'Randomised Trial',
+        'Project Status',
+        'Theme',
+        'UKCRC Health Category',
+        'NIHR priority Areas / Fields of Research',
+        'UKCRC Research Activity Code',
+        'RACS sub-categories',
+        'Research Type',
+        'Methodology',
+        'Expected Impact',
+        'Trial Phase',
+        'Main Funding Source',
+        'Main Funding Category',
+        'Main Funding - DHSC/NIHR Funding',
+        'Main Funding - Industry Collaborative or Industry Contract Funding',
+    ],
+)
+@pytest.mark.parametrize(
+    "value", ['', None, ' '],
+)
+@pytest.mark.xdist_group(name="spreadsheets")
+def test__post__missing_mandatory_data(client, faker, loggedin_user_finance_uploader, standard_lookups, missing_data, value):
+    data = faker.finance_spreadsheet_data(rows=1)
+    data[0][missing_data.lower()] = value
 
-#     _post_upload_data(
-#         client,
-#         faker,
-#         data,
-#         expected_status=FinanceUpload.STATUS__ERROR,
-#         expected_errors=f"Row 1: {missing_data}: Data is missing",
-#         expected_projects=0,
-#         )
+    _post_upload_data(
+        client,
+        faker,
+        data,
+        expected_status=FinanceUpload.STATUS__ERROR,
+        expected_errors=f"Row 1: {missing_data}: Data is missing",
+        expected_projects=0,
+        )
 
 
 # @pytest.mark.parametrize(
