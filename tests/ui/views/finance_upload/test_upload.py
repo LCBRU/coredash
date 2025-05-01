@@ -265,33 +265,34 @@ def test__post__missing_mandatory_data(client, faker, loggedin_user_finance_uplo
         )
 
 
-# @pytest.mark.parametrize(
-#     "invalid_column", [
-#         'Project Status',
-#         'Theme',
-#         'UKCRC Health Category',
-#         'NIHR priority Areas / Fields of Research',
-#         'UKCRC Research Activity Code',
-#         'RACS sub-categories',
-#         'Research Type',
-#         'Methodology',
-#         'Expected Impact',
-#         'Trial Phase',
-#         'Main Funding Source',
-#         'Main Funding Category',
-#         'Main Funding - DHSC/NIHR Funding',
-#         'Main Funding - Industry Collaborative or Industry Contract Funding',
-#     ],
-# )
-# def test__post__invalid_lookup_value(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
-#     data = faker.bacteria_spreadsheet_data(rows=1)
-#     data[0]['bacterial species'] = 'This doesnt exist'
+@pytest.mark.parametrize(
+    "invalid_column", [
+        'Project Status',
+        'Theme',
+        'UKCRC Health Category',
+        'NIHR priority Areas / Fields of Research',
+        'UKCRC Research Activity Code',
+        'RACS sub-categories',
+        'Research Type',
+        'Methodology',
+        'Expected Impact',
+        'Trial Phase',
+        'Main Funding Source',
+        'Main Funding Category',
+        'Main Funding - DHSC/NIHR Funding',
+        'Main Funding - Industry Collaborative or Industry Contract Funding',
+    ],
+)
+@pytest.mark.xdist_group(name="spreadsheets")
+def test__post__invalid_lookup_value(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
+    data = faker.finance_spreadsheet_data(rows=1)
+    data[0][invalid_column.lower()] = 'This doesnt exist'
 
-#     _post_upload_data(
-#         client=client,
-#         faker=faker,
-#         data=data,
-#         expected_status=Upload.STATUS__ERROR,
-#         expected_errors="Row 1: Bacterial Species does not exist",
-#         expected_specimens=0,
-#     )
+    _post_upload_data(
+        client=client,
+        faker=faker,
+        data=data,
+        expected_status=FinanceUpload.STATUS__ERROR,
+        expected_errors=f"Row 1: {invalid_column}: Does not exist",
+        expected_projects=0,
+    )

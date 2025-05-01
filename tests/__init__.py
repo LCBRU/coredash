@@ -16,11 +16,7 @@ def convert_projects_to_spreadsheet_data(projects):
         row = {}
 
         for c in col_def.column_definition:
-            field = getattr(p, c.translated_name)
-            if c.type == ColumnDefinition.COLUMN_TYPE_LOOKUP:
-                row[c.name.lower()] = field.name
-            else:
-                row[c.name.lower()] = field
+            row[c.name.lower()] = c.get_object_value(p)
 
         result.append(row)
 

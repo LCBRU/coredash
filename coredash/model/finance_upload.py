@@ -2,7 +2,7 @@ from flask import current_app
 from lbrc_flask.database import db
 from lbrc_flask.security import AuditMixin
 from lbrc_flask.model import CommonMixin
-from lbrc_flask.column_data import ColumnDefinition, ColumnsDefinition, ExcelData
+from lbrc_flask.column_data import ColumnDefinition, ColumnsDefinition, ExcelData, StringColumnDefinition, IntegerColumnDefinition, DateColumnDefinition, BooleanColumnDefinition, LookupColumnDefinition
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, Text
 from werkzeug.utils import secure_filename
@@ -55,226 +55,194 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
     @property
     def column_definition(self):
         return [
-            ColumnDefinition(
+            StringColumnDefinition(
                 name='Project Title',
                 translated_name='title',
-                type=ColumnDefinition.COLUMN_TYPE_STRING,
                 max_length=500,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            StringColumnDefinition(
                 name='Project summary',
                 translated_name='summary',
-                type=ColumnDefinition.COLUMN_TYPE_STRING,
                 allow_null=True,
             ),
-            ColumnDefinition(
+            StringColumnDefinition(
                 name='Comments',
                 translated_name='comments',
-                type=ColumnDefinition.COLUMN_TYPE_STRING,
                 allow_null=True,
             ),
-            ColumnDefinition(
+            StringColumnDefinition(
                 name='Local REC number',
                 translated_name='local_rec_number',
-                type=ColumnDefinition.COLUMN_TYPE_STRING,
                 max_length=50,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            StringColumnDefinition(
                 name='IRAS Number',
                 translated_name='iras_number',
-                type=ColumnDefinition.COLUMN_TYPE_STRING,
                 max_length=50,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            StringColumnDefinition(
                 name='CRN/RDN CPMS ID',
                 translated_name='cpms_id',
-                type=ColumnDefinition.COLUMN_TYPE_STRING,
                 max_length=50,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            DateColumnDefinition(
                 name='Project Actual Start Date',
                 translated_name='start_date',
-                type=ColumnDefinition.COLUMN_TYPE_DATE,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            DateColumnDefinition(
                 name='Project End Date',
                 translated_name='end_date',
-                type=ColumnDefinition.COLUMN_TYPE_DATE,
                 allow_null=True,
             ),
-            ColumnDefinition(
+            IntegerColumnDefinition(
                 name='Participants Recruited to Centre FY',
                 translated_name='participants_recruited_to_centre_fy',
-                type=ColumnDefinition.COLUMN_TYPE_INTEGER,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            IntegerColumnDefinition(
                 name='BRC funding',
                 translated_name='brc_funding',
-                type=ColumnDefinition.COLUMN_TYPE_INTEGER,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            IntegerColumnDefinition(
                 name='Main Funding - BRC Funding',
                 translated_name='main_funding_brc_funding',
-                type=ColumnDefinition.COLUMN_TYPE_INTEGER,
                 allow_null=True,
             ),
-            ColumnDefinition(
+            IntegerColumnDefinition(
                 name='Total External Funding Awarded',
                 translated_name='total_external_funding_award',
-                type=ColumnDefinition.COLUMN_TYPE_INTEGER,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            BooleanColumnDefinition(
                 name='Is this project sensitive',
                 translated_name='sensitive',
-                type=ColumnDefinition.COLUMN_TYPE_BOOLEAN,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            BooleanColumnDefinition(
                 name='First in Human Project',
                 translated_name='first_in_human',
-                type=ColumnDefinition.COLUMN_TYPE_BOOLEAN,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            BooleanColumnDefinition(
                 name='Link to NIHR Translational Research Collaboration',
                 translated_name='link_to_nihr_transactional_research_collaboration',
-                type=ColumnDefinition.COLUMN_TYPE_BOOLEAN,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            BooleanColumnDefinition(
                 name='CRN/RDN Portfolio study',
                 translated_name='crn_rdn_portfolio_study',
-                type=ColumnDefinition.COLUMN_TYPE_BOOLEAN,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            BooleanColumnDefinition(
                 name='REC Approval Required',
                 translated_name='rec_approval_required',
-                type=ColumnDefinition.COLUMN_TYPE_BOOLEAN,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            BooleanColumnDefinition(
                 name='Randomised Trial',
                 translated_name='randomised_trial',
-                type=ColumnDefinition.COLUMN_TYPE_BOOLEAN,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Project Status',
                 translated_name='project_status',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=ProjectStatus,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Theme',
                 translated_name='theme',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=Theme,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='UKCRC Health Category',
                 translated_name='ukcrc_health_category',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=UkcrcHealthCategory,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='NIHR priority Areas / Fields of Research',
                 translated_name='nihr_priority_area',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=NihrPriorityArea,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='UKCRC Research Activity Code',
                 translated_name='ukcrc_research_activity_code',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=UkcrcResearchActivityCode,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='RACS sub-categories',
                 translated_name='racs_sub_category',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=RacsSubCategory,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Research Type',
                 translated_name='research_type',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=ResearchType,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Methodology',
                 translated_name='methodology',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=Methodology,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Expected Impact',
                 translated_name='expected_impact',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=ExpectedImpact,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Trial Phase',
                 translated_name='trial_phase',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=TrialPhase,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Main Funding Source',
                 translated_name='main_funding_source',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=MainFundingSource,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Main Funding Category',
                 translated_name='main_funding_category',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=MainFundingCategory,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Main Funding - DHSC/NIHR Funding',
                 translated_name='main_funding_dhsc_nihr_funding',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=MainFundingDhscNihrFunding,
                 max_length=100,
                 allow_null=False,
             ),
-            ColumnDefinition(
+            LookupColumnDefinition(
                 name='Main Funding - Industry Collaborative or Industry Contract Funding',
                 translated_name='main_funding_industry',
-                type=ColumnDefinition.COLUMN_TYPE_LOOKUP,
                 lookup_class=MainFundingIndustry,
                 max_length=100,
                 allow_null=False,
