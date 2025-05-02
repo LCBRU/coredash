@@ -309,3 +309,17 @@ def test__post__invalid_lookup_value(client, faker, loggedin_user_finance_upload
         expected_errors=f"Row 1: {invalid_column}: Does not exist",
         expected_projects=0,
     )
+
+
+@pytest.mark.xdist_group(name="spreadsheets")
+def test__post__unexpected_error(client, faker, loggedin_user_finance_uploader, standard_lookups):
+    data = faker.finance_spreadsheet_data(rows=1)
+
+    _post_upload_data(
+        client=client,
+        faker=faker,
+        data=data,
+        expected_status=FinanceUpload.STATUS__ERROR,
+        expected_errors="Unexpected error",
+        expected_projects=0,
+    )

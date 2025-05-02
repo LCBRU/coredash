@@ -41,7 +41,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
         return current_app.config["FILE_UPLOAD_DIRECTORY"] / secure_filename(f"{self.guid}_{self.filename}")
 
     def get_spreadsheet(self):
-        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_PROJECT_LIST)
+        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_PROJECT_LIST, column_header_row=4, header_rows=4)
 
     def validate(self):
         definition = FinanceUploadColumnDefinition()
