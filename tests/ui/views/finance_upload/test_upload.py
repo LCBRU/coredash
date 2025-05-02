@@ -3,13 +3,11 @@ import pytest
 from flask import url_for
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__input_file, assert__refresh_response, assert__requires_role
 from lbrc_flask.database import db
-from lbrc_flask.python_helpers import dictlist_remove_key
 from sqlalchemy import func, select
-from coredash.model.finance_upload import FinanceUpload, FinanceUploadColumnDefinition
+from coredash.model.finance_upload import WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUploadColumnDefinition
 from coredash.model.project import Project
 from tests import convert_projects_to_spreadsheet_data
 from tests.requests import coredash_modal_get
-from pprint import pp
 
 
 def _url(external=True, **kwargs):
@@ -36,7 +34,7 @@ def _post(client, url, file, filename):
 
 
 def _post_upload_data(client, faker, data, expected_status, expected_errors, expected_projects):
-    file = faker.xlsx(headers=FinanceUploadColumnDefinition().column_names, data=data)
+    file = faker.xlsx(headers=FinanceUploadColumnDefinition().column_names, data=data, worksheet=WORKSHEET_NAME_PROJECT_LIST)
     _post_upload_file(client, expected_status, expected_errors, expected_projects, file)
 
 
@@ -110,6 +108,21 @@ def test__post__valid_file__update(client, faker, loggedin_user_finance_uploader
     assert expected == actual
 
 
+@pytest.mark.xdist_group(name="spreadsheets")
+def test__post__missing_worksheet(client, faker, loggedin_user_finance_uploader, standard_lookups):
+    data = faker.finance_spreadsheet_data()
+
+    file = faker.xlsx(headers=FinanceUploadColumnDefinition().column_names, data=data, worksheet='Project Not List')
+
+    _post_upload_file(
+        client=client,
+        expected_status=FinanceUpload.STATUS__ERROR,
+        expected_errors=f"Missing worksheet '{WORKSHEET_NAME_PROJECT_LIST}'",
+        expected_projects=0,
+        file=file,
+    )
+
+
 @pytest.mark.parametrize(
     "missing_column_name", FinanceUploadColumnDefinition().column_names,
 )
@@ -119,7 +132,7 @@ def test__post__missing_column(client, faker, loggedin_user_finance_uploader, st
 
     data = faker.finance_spreadsheet_data()
 
-    file = faker.xlsx(headers=columns_to_include, data=data)
+    file = faker.xlsx(headers=columns_to_include, data=data, worksheet=WORKSHEET_NAME_PROJECT_LIST)
 
     _post_upload_file(
         client=client,
@@ -144,7 +157,7 @@ def test__post__case_insenstive_column_names(client, faker, loggedin_user_financ
             columns_to_include = [cn.title() for cn in FinanceUploadColumnDefinition().column_names]
 
     data = faker.finance_spreadsheet_data()
-    file = faker.xlsx(headers=columns_to_include, data=data)
+    file = faker.xlsx(headers=columns_to_include, data=data, worksheet=WORKSHEET_NAME_PROJECT_LIST)
 
     _post_upload_file(
         client,

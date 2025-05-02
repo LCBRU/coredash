@@ -11,6 +11,8 @@ from coredash.model.lookups import Theme
 from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 
 
+WORKSHEET_NAME_PROJECT_LIST = 'Project List'
+
 class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     STATUS__AWAITING_PROCESSING = 'Awaiting Processing'
     STATUS__PROCESSED = 'Processed'
@@ -31,11 +33,20 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     def local_filepath(self):
         return current_app.config["FILE_UPLOAD_DIRECTORY"] / secure_filename(f"{self.id}_{self.filename}")
 
+    def get_spreadsheet(self):
+        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_PROJECT_LIST)
+
     def validate(self):
-        spreadsheet = ExcelData(self.local_filepath)
         definition = FinanceUploadColumnDefinition()
 
-        errors = definition.validation_errors(spreadsheet)
+        spreadsheet = self.get_spreadsheet()
+
+        errors = []
+
+        if not spreadsheet.has_worksheet():
+            errors.append(f"Missing worksheet '{WORKSHEET_NAME_PROJECT_LIST}'")
+        else:
+            errors.extend(definition.validation_errors(spreadsheet))
 
         if errors:
             self.errors = "\n".join(errors)
@@ -48,7 +59,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     def data(self):
         definition = FinanceUploadColumnDefinition()
 
-        return definition.translated_data(ExcelData(self.local_filepath))
+        return definition.translated_data(self.get_spreadsheet())
 
 
 class FinanceUploadColumnDefinition(ColumnsDefinition):

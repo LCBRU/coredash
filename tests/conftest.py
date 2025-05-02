@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import shutil
 import pytest
 from faker import Faker
@@ -42,6 +43,7 @@ def loggedin_user_finance_uploader(client, faker):
 def app(tmp_path):
     class LocalTestConfig(TestConfig):
         FILE_UPLOAD_DIRECTORY = tmp_path
+        # FILE_UPLOAD_DIRECTORY = Path('/home/richard/projects/coredash/upload/test/')
 
     yield create_app(LocalTestConfig)
 
