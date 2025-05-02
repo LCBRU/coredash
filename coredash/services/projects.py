@@ -18,23 +18,23 @@ def project_search_query(search_data=None):
                 Project.iras_number.like(f"%{word}%"),
             ))
 
-    if search_data.get('sensitive') is not None:
-        q = q.where(Project.sensitive == search_data.get('sensitive'))
+    if (x := search_data.get('sensitive')) is not None:
+        q = q.where(Project.sensitive == x)
 
-    if search_data.get('first_in_human') is not None:
-        q = q.where(Project.first_in_human == search_data.get('first_in_human'))
+    if (x := search_data.get('first_in_human')) is not None:
+        q = q.where(Project.first_in_human == x)
 
-    if search_data.get('link_to_nihr_transactional_research_collaboration') is not None:
-        q = q.where(Project.link_to_nihr_transactional_research_collaboration == search_data.get('link_to_nihr_transactional_research_collaboration'))
+    if (x := search_data.get('link_to_nihr_transactional_research_collaboration')) is not None:
+        q = q.where(Project.link_to_nihr_transactional_research_collaboration == x)
 
-    if search_data.get('crn_rdn_portfolio_study') is not None:
-        q = q.where(Project.crn_rdn_portfolio_study == search_data.get('crn_rdn_portfolio_study'))
+    if (x := search_data.get('crn_rdn_portfolio_study')) is not None:
+        q = q.where(Project.crn_rdn_portfolio_study == x)
 
-    if search_data.get('rec_approval_required') is not None:
-        q = q.where(Project.rec_approval_required == search_data.get('rec_approval_required'))
+    if (x := search_data.get('rec_approval_required')) is not None:
+        q = q.where(Project.rec_approval_required == x)
 
-    if search_data.get('randomised_trial') is not None:
-        q = q.where(Project.randomised_trial == search_data.get('randomised_trial'))
+    if (x := search_data.get('randomised_trial')) is not None:
+        q = q.where(Project.randomised_trial == x)
 
     if x := search_data.get('project_status_id'):
         q = q.where(Project.project_status_id == x)
@@ -77,7 +77,7 @@ def project_search_query(search_data=None):
 
     if x := search_data.get('main_funding_industry_id'):
         q = q.where(Project.main_funding_industry_id == x)
-
+    
     return q
 
 

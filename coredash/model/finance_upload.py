@@ -1,3 +1,4 @@
+import uuid
 from flask import current_app
 from lbrc_flask.database import db
 from lbrc_flask.security import AuditMixin
@@ -25,13 +26,19 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     ]
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    guid: Mapped[str] = mapped_column(String(50))
     filename: Mapped[str] = mapped_column(String(500))
     status: Mapped[str] = mapped_column(String(50), default='')
     errors: Mapped[str] = mapped_column(Text, default='')
 
+    def __init__(self, **kwargs):
+        if 'guid' not in kwargs:
+            kwargs['guid'] = str(uuid.uuid4())
+        super().__init__(**kwargs)
+
     @property
     def local_filepath(self):
-        return current_app.config["FILE_UPLOAD_DIRECTORY"] / secure_filename(f"{self.id}_{self.filename}")
+        return current_app.config["FILE_UPLOAD_DIRECTORY"] / secure_filename(f"{self.guid}_{self.filename}")
 
     def get_spreadsheet(self):
         return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_PROJECT_LIST)
