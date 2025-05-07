@@ -93,19 +93,19 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
                 name='Local REC number',
                 translated_name='local_rec_number',
                 max_length=50,
-                allow_null=False,
+                allow_null=True,
             ),
             StringColumnDefinition(
                 name='IRAS Number',
                 translated_name='iras_number',
                 max_length=50,
-                allow_null=False,
+                allow_null=True,
             ),
             StringColumnDefinition(
                 name='CRN/RDN CPMS ID',
                 translated_name='cpms_id',
                 max_length=50,
-                allow_null=False,
+                allow_null=True,
             ),
             DateColumnDefinition(
                 name='Project Actual Start Date',
@@ -207,7 +207,7 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
                 translated_name='racs_sub_category',
                 lookup_class=RacsSubCategory,
                 max_length=100,
-                allow_null=False,
+                allow_null=True,
             ),
             LookupColumnDefinition(
                 name='Research Type',
@@ -235,7 +235,7 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
                 translated_name='trial_phase',
                 lookup_class=TrialPhase,
                 max_length=100,
-                allow_null=False,
+                allow_null=True,
             ),
             LookupColumnDefinition(
                 name='Main Funding Source',
@@ -256,13 +256,13 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
                 translated_name='main_funding_dhsc_nihr_funding',
                 lookup_class=MainFundingDhscNihrFunding,
                 max_length=100,
-                allow_null=False,
+                allow_null=True,
             ),
             LookupColumnDefinition(
                 name='Main Funding - Industry Collaborative or Industry Contract Funding',
                 translated_name='main_funding_industry',
                 lookup_class=MainFundingIndustry,
                 max_length=100,
-                allow_null=False,
+                allow_null=True,
             ),
         ]
