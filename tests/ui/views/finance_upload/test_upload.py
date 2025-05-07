@@ -8,6 +8,7 @@ from coredash.model.finance_upload import WORKSHEET_NAME_PROJECT_LIST, FinanceUp
 from coredash.model.project import Project
 from tests import convert_projects_to_spreadsheet_data
 from tests.requests import coredash_modal_get
+from unittest.mock import patch
 
 
 def _url(external=True, **kwargs):
@@ -34,7 +35,12 @@ def _post(client, url, file, filename):
 
 
 def _post_upload_data(client, faker, data, expected_status, expected_errors, expected_projects):
-    file = faker.xlsx(headers=FinanceUploadColumnDefinition().column_names, data=data, worksheet=WORKSHEET_NAME_PROJECT_LIST)
+    file = faker.xlsx(
+        headers=FinanceUploadColumnDefinition().column_names,
+        data=data,
+        worksheet=WORKSHEET_NAME_PROJECT_LIST,
+        headers_on_row=4,
+    )
     _post_upload_file(client, expected_status, expected_errors, expected_projects, file)
 
 
@@ -112,7 +118,12 @@ def test__post__valid_file__update(client, faker, loggedin_user_finance_uploader
 def test__post__missing_worksheet(client, faker, loggedin_user_finance_uploader, standard_lookups):
     data = faker.finance_spreadsheet_data()
 
-    file = faker.xlsx(headers=FinanceUploadColumnDefinition().column_names, data=data, worksheet='Project Not List')
+    file = faker.xlsx(
+        headers=FinanceUploadColumnDefinition().column_names,
+        data=data,
+        worksheet='Project Not List',
+        headers_on_row=4,
+    )
 
     _post_upload_file(
         client=client,
@@ -132,7 +143,11 @@ def test__post__missing_column(client, faker, loggedin_user_finance_uploader, st
 
     data = faker.finance_spreadsheet_data()
 
-    file = faker.xlsx(headers=columns_to_include, data=data, worksheet=WORKSHEET_NAME_PROJECT_LIST)
+    file = faker.xlsx(
+        headers=columns_to_include,
+        data=data, worksheet=WORKSHEET_NAME_PROJECT_LIST,
+        headers_on_row=4,
+    )
 
     _post_upload_file(
         client=client,
@@ -157,7 +172,12 @@ def test__post__case_insenstive_column_names(client, faker, loggedin_user_financ
             columns_to_include = [cn.title() for cn in FinanceUploadColumnDefinition().column_names]
 
     data = faker.finance_spreadsheet_data()
-    file = faker.xlsx(headers=columns_to_include, data=data, worksheet=WORKSHEET_NAME_PROJECT_LIST)
+    file = faker.xlsx(
+        headers=columns_to_include,
+        data=data,
+        worksheet=WORKSHEET_NAME_PROJECT_LIST,
+        headers_on_row=4,
+    )
 
     _post_upload_file(
         client,
@@ -315,11 +335,12 @@ def test__post__invalid_lookup_value(client, faker, loggedin_user_finance_upload
 def test__post__unexpected_error(client, faker, loggedin_user_finance_uploader, standard_lookups):
     data = faker.finance_spreadsheet_data(rows=1)
 
-    _post_upload_data(
-        client=client,
-        faker=faker,
-        data=data,
-        expected_status=FinanceUpload.STATUS__ERROR,
-        expected_errors="Unexpected error",
-        expected_projects=0,
-    )
+    with patch('coredash.services.finance_uploads.finance_upload_process', side_effect=Exception('Mocked Error')):
+        _post_upload_data(
+            client=client,
+            faker=faker,
+            data=data,
+            expected_status=FinanceUpload.STATUS__ERROR,
+            expected_errors="Unexpected error",
+            expected_projects=0,
+        )
