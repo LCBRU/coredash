@@ -1,7 +1,7 @@
 from coredash.model.lookups import Theme
 from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 from coredash.security import ROLENAME_PROJECT_EDITOR
-from coredash.services.projects import project_save, project_search_query
+from coredash.services.projects import project_populate, project_search_query
 from .. import blueprint
 from flask import render_template, request, url_for
 from lbrc_flask.forms import SearchForm, YesNoSelectField, FlashingForm
@@ -138,7 +138,8 @@ def project_add(id=None):
         title = f"Add Project"
 
     if form.validate_on_submit():
-        project_save(object, form.data)
+        project_populate(object, form.data)
+        db.session.add(object)
         db.session.commit()
         return refresh_response()
 

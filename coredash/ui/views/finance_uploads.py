@@ -15,7 +15,7 @@ from flask_security.decorators import roles_accepted
 class UploadForm(FlashingForm):
     finance_file = FileField(
         'Finance File',
-        accept=['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
+        accept=['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel.sheet.macroEnabled.12'],
         validators=[FileRequired()],
     )
 

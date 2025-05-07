@@ -29,7 +29,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     guid: Mapped[str] = mapped_column(String(50))
     filename: Mapped[str] = mapped_column(String(500))
     status: Mapped[str] = mapped_column(String(50), default='')
-    errors: Mapped[str] = mapped_column(Text, default='')
+    errors: Mapped[str] = mapped_column(Text(64000), default='')
 
     def __init__(self, **kwargs):
         if 'guid' not in kwargs:

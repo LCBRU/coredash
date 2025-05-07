@@ -82,12 +82,13 @@ def project_search_query(search_data=None):
 
 
 def projects_save(data):
+    projects = [project_populate(Project(), d) for d in data]
+
     db.session.execute(delete(Project))
-    for d in data:
-        project_save(Project(), d)
+    db.session.add_all(projects)
 
 
-def project_save(project, data):
+def project_populate(project, data):
     project.title = data['title']
     project.summary = data['summary']
     project.comments = data['comments']
@@ -121,4 +122,4 @@ def project_save(project, data):
     project.main_funding_dhsc_nihr_funding_id = data['main_funding_dhsc_nihr_funding_id']
     project.main_funding_industry_id = data['main_funding_industry_id']
 
-    db.session.add(project)
+    return project

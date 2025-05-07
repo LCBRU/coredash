@@ -80,7 +80,7 @@ def test__post__valid_file__insert(client, faker, loggedin_user_finance_uploader
         client,
         faker,
         data,
-        expected_status=FinanceUpload.STATUS__AWAITING_PROCESSING,
+        expected_status=FinanceUpload.STATUS__PROCESSED,
         expected_errors="",
         expected_projects=len(data),
         )
@@ -101,7 +101,7 @@ def test__post__valid_file__update(client, faker, loggedin_user_finance_uploader
         client,
         faker,
         data,
-        expected_status=FinanceUpload.STATUS__AWAITING_PROCESSING,
+        expected_status=FinanceUpload.STATUS__PROCESSED,
         expected_errors="",
         expected_projects=len(data),
         )
@@ -181,7 +181,7 @@ def test__post__case_insenstive_column_names(client, faker, loggedin_user_financ
 
     _post_upload_file(
         client,
-        expected_status=FinanceUpload.STATUS__AWAITING_PROCESSING,
+        expected_status=FinanceUpload.STATUS__PROCESSED,
         expected_errors="",
         expected_projects=len(data),
         file=file,
@@ -221,6 +221,51 @@ def test__post__invalid_column_type(client, faker, loggedin_user_finance_uploade
         expected_errors=f"Row 1: {invalid_column}: Invalid value",
         expected_projects=0,
     )
+
+
+@pytest.mark.parametrize(
+    "boolean_column", [
+        'Is this project sensitive',
+        'First in Human Project',
+        'Link to NIHR Translational Research Collaboration',
+        'CRN/RDN Portfolio study',
+        'REC Approval Required',
+        'Randomised Trial',
+    ],
+)
+@pytest.mark.parametrize(
+    "value", [
+        ('true', True),
+        ('True', True),
+        ('false', False),
+        ('False', False),
+        ('y', True),
+        ('Y', True),
+        ('n', False),
+        ('N', False),
+        ('yes', True),
+        ('Yes', True),
+        ('no', False),
+        ('No', False),
+    ],
+)
+@pytest.mark.xdist_group(name="spreadsheets")
+def test__post__valid_boolean_options(client, faker, loggedin_user_finance_uploader, standard_lookups, boolean_column, value):
+    data = faker.finance_spreadsheet_data(rows=1)
+
+    data[0][boolean_column.lower()] = value[0]
+
+    _post_upload_data(
+        client=client,
+        faker=faker,
+        data=data,
+        expected_status=FinanceUpload.STATUS__PROCESSED,
+        expected_errors="",
+        expected_projects=1,
+    )
+
+    actual = convert_projects_to_spreadsheet_data(db.session.execute(select(Project)).scalars())
+    assert actual[0][boolean_column.lower()] == value[1]
 
 
 @pytest.mark.parametrize(

@@ -39,4 +39,4 @@ def finance_upload_process(finance_upload: FinanceUpload):
 
     if not finance_upload.is_error:
         projects_save(finance_upload.data())
-        finance_upload.status = FinanceUpload.STATUS__AWAITING_PROCESSING
+        finance_upload.status = FinanceUpload.STATUS__PROCESSED
