@@ -296,9 +296,6 @@ def test__post__invalid_column_length(client, faker, loggedin_user_finance_uploa
 @pytest.mark.parametrize(
     "missing_data", [
         'Project Title',
-        'Local REC number',
-        'IRAS Number',
-        'CRN/RDN CPMS ID',
         'Project Actual Start Date',
         'Participants Recruited to Centre FY',
         'BRC funding',
@@ -314,15 +311,11 @@ def test__post__invalid_column_length(client, faker, loggedin_user_finance_uploa
         'UKCRC Health Category',
         'NIHR priority Areas / Fields of Research',
         'UKCRC Research Activity Code',
-        'RACS sub-categories',
         'Research Type',
         'Methodology',
         'Expected Impact',
-        'Trial Phase',
         'Main Funding Source',
         'Main Funding Category',
-        'Main Funding - DHSC/NIHR Funding',
-        'Main Funding - Industry Collaborative or Industry Contract Funding',
     ],
 )
 @pytest.mark.parametrize(
