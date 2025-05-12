@@ -3,13 +3,13 @@ from flask import current_app
 from lbrc_flask.database import db
 from lbrc_flask.security import AuditMixin
 from lbrc_flask.model import CommonMixin
-from lbrc_flask.column_data import ColumnDefinition, ColumnsDefinition, ExcelData, StringColumnDefinition, IntegerColumnDefinition, DateColumnDefinition, BooleanColumnDefinition, LookupColumnDefinition
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, Text
+from lbrc_flask.column_data import NumericColumnDefinition, ColumnsDefinition, ExcelData, StringColumnDefinition, IntegerColumnDefinition, DateColumnDefinition, BooleanColumnDefinition, LookupColumnDefinition, ColumnsDefinitionValidationMessage
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import ForeignKey, Integer, String, Text
 from werkzeug.utils import secure_filename
 
 from coredash.model.lookups import Theme
-from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
+from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, Methodology, NihrPriorityArea, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 
 
 WORKSHEET_NAME_PROJECT_LIST = 'Project List'
@@ -49,13 +49,24 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
         spreadsheet = self.get_spreadsheet()
 
         errors = []
+        messages = []
 
         if not spreadsheet.has_worksheet():
-            errors.append(f"Missing worksheet '{WORKSHEET_NAME_PROJECT_LIST}'")
+            messages.append(ColumnsDefinitionValidationMessage(type=ColumnsDefinitionValidationMessage.TYPE__ERROR, message=f"Missing worksheet '{WORKSHEET_NAME_PROJECT_LIST}'"))
         else:
+            messages.extend(definition.validation_errors_m(spreadsheet))
             errors.extend(definition.validation_errors(spreadsheet))
 
-        if errors:
+        print(messages)
+
+        db.session.add_all([FinanceUploadMessage(
+            finance_upload=self,
+            type=m.type,
+            row=m.row,
+            message=m.message,
+        ) for m in messages])
+
+        if errors or messages:
             self.errors = "\n".join(errors)
             self.status = FinanceUpload.STATUS__ERROR
 
@@ -67,6 +78,32 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
         definition = FinanceUploadColumnDefinition()
 
         return definition.translated_data(self.get_spreadsheet())
+
+
+class FinanceUploadMessage(AuditMixin, CommonMixin, db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+    finance_upload_id: Mapped[int] = mapped_column(ForeignKey(FinanceUpload.id), index=True, nullable=False)
+    finance_upload: Mapped[FinanceUpload] = relationship(foreign_keys=[finance_upload_id])
+    type: Mapped[str] = mapped_column(String(20), index=True)
+
+    __mapper_args__ = {
+        "polymorphic_on": type,
+    }
+
+    row: Mapped[int] = mapped_column(Integer, nullable=True)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+class FinanceUploadErrorMessage(FinanceUploadMessage):
+    __mapper_args__ = {
+        "polymorphic_identity": 'Error',
+    }
+
+
+class FinanceUploadWarningMessage(FinanceUploadMessage):
+    __mapper_args__ = {
+        "polymorphic_identity": 'Warning',
+    }
 
 
 class FinanceUploadColumnDefinition(ColumnsDefinition):
@@ -107,10 +144,16 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
                 max_length=50,
                 allow_null=True,
             ),
+            StringColumnDefinition(
+                name='Main Funding Source',
+                translated_name='main_funding_source',
+                max_length=500,
+                allow_null=False,
+            ),
             DateColumnDefinition(
                 name='Project Actual Start Date',
                 translated_name='start_date',
-                allow_null=False,
+                allow_null=True,
             ),
             DateColumnDefinition(
                 name='Project End Date',
@@ -120,7 +163,7 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
             IntegerColumnDefinition(
                 name='Participants Recruited to Centre FY',
                 translated_name='participants_recruited_to_centre_fy',
-                allow_null=False,
+                allow_null=True,
             ),
             IntegerColumnDefinition(
                 name='BRC funding',
@@ -132,7 +175,7 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
                 translated_name='main_funding_brc_funding',
                 allow_null=True,
             ),
-            IntegerColumnDefinition(
+            NumericColumnDefinition(
                 name='Total External Funding Awarded',
                 translated_name='total_external_funding_award',
                 allow_null=False,
@@ -193,7 +236,7 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
                 translated_name='nihr_priority_area',
                 lookup_class=NihrPriorityArea,
                 max_length=100,
-                allow_null=False,
+                allow_null=True,
             ),
             LookupColumnDefinition(
                 name='UKCRC Research Activity Code',
@@ -236,13 +279,6 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
                 lookup_class=TrialPhase,
                 max_length=100,
                 allow_null=True,
-            ),
-            LookupColumnDefinition(
-                name='Main Funding Source',
-                translated_name='main_funding_source',
-                lookup_class=MainFundingSource,
-                max_length=100,
-                allow_null=False,
             ),
             LookupColumnDefinition(
                 name='Main Funding Category',

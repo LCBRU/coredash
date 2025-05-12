@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from lbrc_flask.database import db
-from coredash.model.finance_upload import FinanceUpload
+from coredash.model.finance_upload import FinanceUpload, FinanceUploadMessage
 from coredash.services.projects import projects_save
 from lbrc_flask.logging import log_exception
 
@@ -27,7 +27,12 @@ def finance_upload_save(data):
         finance_upload_process(u)
     except Exception as e:
         log_exception(e)
-        u.errors = 'Unexpected error'
+        db.session.add(
+            FinanceUploadMessage(
+                finance_upload=u,
+                type='Error',
+                message='Unexpected error',
+        ))
         u.status = FinanceUpload.STATUS__ERROR
 
     db.session.add(u)

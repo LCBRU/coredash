@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 
 from coredash.model.finance_upload import FinanceUploadColumnDefinition
-from lbrc_flask.column_data import ColumnDefinition
 
 # Load environment variables from '.env' file.
 load_dotenv()

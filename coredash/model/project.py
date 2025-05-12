@@ -34,9 +34,6 @@ class ExpectedImpact(Lookup, db.Model):
 class TrialPhase(Lookup, db.Model):
     pass
 
-class MainFundingSource(Lookup, db.Model):
-    pass
-
 class MainFundingCategory(Lookup, db.Model):
     pass
 
@@ -57,6 +54,7 @@ class Project(AuditMixin, CommonMixin, db.Model):
     local_rec_number: Mapped[str] = mapped_column(String(50), nullable=True, unique=True)
     iras_number: Mapped[str] = mapped_column(String(50), nullable=True, unique=True)
     cpms_id: Mapped[str] = mapped_column(String(50), nullable=True, unique=True)
+    main_funding_source: Mapped[int] = mapped_column(String(500), nullable=False)
 
     start_date: Mapped[date] = mapped_column(nullable=False, index=True)
     end_date: Mapped[date] = mapped_column(index=True)
@@ -93,8 +91,6 @@ class Project(AuditMixin, CommonMixin, db.Model):
     expected_impact: Mapped[ExpectedImpact] = relationship(foreign_keys=[expected_impact_id])
     trial_phase_id: Mapped[int] = mapped_column(ForeignKey(TrialPhase.id), index=True, nullable=True)
     trial_phase: Mapped[TrialPhase] = relationship(foreign_keys=[trial_phase_id])
-    main_funding_source_id: Mapped[int] = mapped_column(ForeignKey(MainFundingSource.id), index=True, nullable=False)
-    main_funding_source: Mapped[MainFundingSource] = relationship(foreign_keys=[main_funding_source_id])
     main_funding_category_id: Mapped[int] = mapped_column(ForeignKey(MainFundingCategory.id), index=True, nullable=False)
     main_funding_category: Mapped[MainFundingCategory] = relationship(foreign_keys=[main_funding_category_id])
     main_funding_dhsc_nihr_funding_id: Mapped[int] = mapped_column(ForeignKey(MainFundingDhscNihrFunding.id), index=True, nullable=True)

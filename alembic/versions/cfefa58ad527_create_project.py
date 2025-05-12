@@ -25,6 +25,7 @@ def upgrade() -> None:
     sa.Column('local_rec_number', sa.String(length=50), nullable=True),
     sa.Column('iras_number', sa.String(length=50), nullable=True),
     sa.Column('cpms_id', sa.String(length=50), nullable=True),
+    sa.Column('main_funding_source', sa.String(length=500), nullable=False),
     sa.Column('start_date', sa.Date(), nullable=False),
     sa.Column('end_date', sa.Date(), nullable=False),
     sa.Column('participants_recruited_to_centre_fy', sa.Integer(), nullable=False),
@@ -47,7 +48,6 @@ def upgrade() -> None:
     sa.Column('methodology_id', sa.Integer(), nullable=False),
     sa.Column('expected_impact_id', sa.Integer(), nullable=False),
     sa.Column('trial_phase_id', sa.Integer(), nullable=True),
-    sa.Column('main_funding_source_id', sa.Integer(), nullable=False),
     sa.Column('main_funding_category_id', sa.Integer(), nullable=False),
     sa.Column('main_funding_dhsc_nihr_funding_id', sa.Integer(), nullable=True),
     sa.Column('main_funding_industry_id', sa.Integer(), nullable=True),
@@ -59,7 +59,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['main_funding_category_id'], ['main_funding_category.id'], ),
     sa.ForeignKeyConstraint(['main_funding_dhsc_nihr_funding_id'], ['main_funding_dhsc_nihr_funding.id'], ),
     sa.ForeignKeyConstraint(['main_funding_industry_id'], ['main_funding_industry.id'], ),
-    sa.ForeignKeyConstraint(['main_funding_source_id'], ['main_funding_source.id'], ),
     sa.ForeignKeyConstraint(['methodology_id'], ['methodology.id'], ),
     sa.ForeignKeyConstraint(['nihr_priority_area_id'], ['nihr_priority_area.id'], ),
     sa.ForeignKeyConstraint(['project_status_id'], ['project_status.id'], ),
@@ -80,7 +79,6 @@ def upgrade() -> None:
     op.create_index(op.f('ix_project_main_funding_category_id'), 'project', ['main_funding_category_id'], unique=False)
     op.create_index(op.f('ix_project_main_funding_dhsc_nihr_funding_id'), 'project', ['main_funding_dhsc_nihr_funding_id'], unique=False)
     op.create_index(op.f('ix_project_main_funding_industry_id'), 'project', ['main_funding_industry_id'], unique=False)
-    op.create_index(op.f('ix_project_main_funding_source_id'), 'project', ['main_funding_source_id'], unique=False)
     op.create_index(op.f('ix_project_methodology_id'), 'project', ['methodology_id'], unique=False)
     op.create_index(op.f('ix_project_nihr_priority_area_id'), 'project', ['nihr_priority_area_id'], unique=False)
     op.create_index(op.f('ix_project_project_status_id'), 'project', ['project_status_id'], unique=False)
@@ -104,7 +102,6 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_project_project_status_id'), table_name='project')
     op.drop_index(op.f('ix_project_nihr_priority_area_id'), table_name='project')
     op.drop_index(op.f('ix_project_methodology_id'), table_name='project')
-    op.drop_index(op.f('ix_project_main_funding_source_id'), table_name='project')
     op.drop_index(op.f('ix_project_main_funding_industry_id'), table_name='project')
     op.drop_index(op.f('ix_project_main_funding_dhsc_nihr_funding_id'), table_name='project')
     op.drop_index(op.f('ix_project_main_funding_category_id'), table_name='project')

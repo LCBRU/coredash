@@ -1,5 +1,5 @@
 from coredash.model.lookups import Theme
-from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
+from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 from coredash.security import ROLENAME_PROJECT_EDITOR
 from coredash.services.projects import project_populate, project_search_query
 from .. import blueprint
@@ -32,7 +32,6 @@ class ProjectSearchForm(SearchForm):
     methodology_id = SelectField('Methodology', coerce=int, render_kw={'class':' select2'})
     expected_impact_id = SelectField('Expected Impact', coerce=int, render_kw={'class':' select2'})
     trial_phase_id = SelectField('Trial Phase', coerce=int, render_kw={'class':' select2'})
-    main_funding_source_id = SelectField('Main Funding Source', coerce=int, render_kw={'class':' select2'})
     main_funding_category_id = SelectField('Main Funding Category', coerce=int, render_kw={'class':' select2'})
     main_funding_dhsc_nihr_funding_id = SelectField('Main Funding - DHSC/NIHR Funding', coerce=int, render_kw={'class':' select2'})
     main_funding_industry_id = SelectField('Main Funding - Industry Collaborative or Industry Contract Funding', coerce=int, render_kw={'class':' select2'})
@@ -50,7 +49,6 @@ class ProjectSearchForm(SearchForm):
         self.methodology_id.choices = LookupRepository(Methodology).get_select_choices()
         self.expected_impact_id.choices = LookupRepository(ExpectedImpact).get_select_choices()
         self.trial_phase_id.choices = LookupRepository(TrialPhase).get_select_choices()
-        self.main_funding_source_id.choices = LookupRepository(MainFundingSource).get_select_choices()
         self.main_funding_category_id.choices = LookupRepository(MainFundingCategory).get_select_choices()
         self.main_funding_dhsc_nihr_funding_id.choices = LookupRepository(MainFundingDhscNihrFunding).get_select_choices()
         self.main_funding_industry_id.choices = LookupRepository(MainFundingIndustry).get_select_choices()
@@ -66,6 +64,7 @@ class EditProjectForm(FlashingForm):
     end_date = DateField('End Date')
     crn_rdn_portfolio_study = BooleanField('CRN/RDN Portfolio study')
     cpms_id = StringField('CRN/RDN CPMS ID', validators=[Length(max=50), DataRequired()])
+    main_funding_source = StringField('Main Funding Source', validators=[Length(max=500), DataRequired()])
     project_status_id = SelectField('Status', coerce=int, render_kw={'class':' select2'})
     theme_id = SelectField('Theme', coerce=int, render_kw={'class':' select2'})
     ukcrc_health_category_id = SelectField('UKCRC Health Category', coerce=int, render_kw={'class':' select2'})
@@ -80,7 +79,6 @@ class EditProjectForm(FlashingForm):
     trial_phase_id = SelectField('Trial Phase', coerce=int, render_kw={'class':' select2'})
     participants_recruited_to_centre_fy = IntegerField('Participants Recruited to Centre FY', validators=[DataRequired()])
     brc_funding = IntegerField('BRC funding', validators=[DataRequired()])
-    main_funding_source_id = SelectField('Main Funding Source', coerce=int, render_kw={'class':' select2'})
     main_funding_category_id = SelectField('Main Funding Category', coerce=int, render_kw={'class':' select2'})
     main_funding_brc_funding = IntegerField('Main Funding - BRC Funding', validators=[DataRequired()])
     main_funding_dhsc_nihr_funding_id = SelectField('Main Funding - DHSC/NIHR Funding', coerce=int, render_kw={'class':' select2'})
@@ -103,7 +101,6 @@ class EditProjectForm(FlashingForm):
         self.methodology_id.choices = LookupRepository(Methodology).get_select_choices()
         self.expected_impact_id.choices = LookupRepository(ExpectedImpact).get_select_choices()
         self.trial_phase_id.choices = LookupRepository(TrialPhase).get_select_choices()
-        self.main_funding_source_id.choices = LookupRepository(MainFundingSource).get_select_choices()
         self.main_funding_category_id.choices = LookupRepository(MainFundingCategory).get_select_choices()
         self.main_funding_dhsc_nihr_funding_id.choices = LookupRepository(MainFundingDhscNihrFunding).get_select_choices()
         self.main_funding_industry_id.choices = LookupRepository(MainFundingIndustry).get_select_choices()

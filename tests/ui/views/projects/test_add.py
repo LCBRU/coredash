@@ -42,6 +42,9 @@ def test__get__has_form(client, loggedin_user_project_editor, standard_lookups, 
 
 def test__post__valid_project(client, faker, loggedin_user_project_editor, standard_lookups):
     expected: Project = faker.project().get()
+
+    print(convert_project_to_form_data(expected))
+
     resp = _post(
         client=client,
         url=_url(),

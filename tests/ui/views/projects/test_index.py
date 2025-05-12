@@ -2,7 +2,7 @@ import pytest
 from flask import url_for
 from lbrc_flask.pytest.asserts import assert__search_html, assert__requires_login, assert__select, assert__input_date, assert__yesno_select
 from coredash.model.lookups import Theme
-from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
+from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, Methodology, NihrPriorityArea, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 from tests.requests import coredash_get
 from lbrc_flask.pytest.html_content import get_records_found, get_panel_list_row_count
 
@@ -36,7 +36,6 @@ def _get(client, url, loggedin_user, faker, has_form, expected_count):
     assert__select(soup=resp.soup, id='methodology_id', options=faker.lookup_select_choices(Methodology))
     assert__select(soup=resp.soup, id='expected_impact_id', options=faker.lookup_select_choices(ExpectedImpact))
     assert__select(soup=resp.soup, id='trial_phase_id', options=faker.lookup_select_choices(TrialPhase))
-    assert__select(soup=resp.soup, id='main_funding_source_id', options=faker.lookup_select_choices(MainFundingSource))
     assert__select(soup=resp.soup, id='main_funding_category_id', options=faker.lookup_select_choices(MainFundingCategory))
     assert__select(soup=resp.soup, id='main_funding_dhsc_nihr_funding_id', options=faker.lookup_select_choices(MainFundingDhscNihrFunding))
     assert__select(soup=resp.soup, id='main_funding_industry_id', options=faker.lookup_select_choices(MainFundingIndustry))
@@ -64,7 +63,7 @@ def test__get__n(client, faker, loggedin_user, standard_lookups, n):
     "n", [1, 2, 3],
 )
 @pytest.mark.parametrize(
-    "field", ['title', 'summary', 'comments', 'local_rec_number', 'iras_number', 'cpms_id'],
+    "field", ['title', 'summary', 'comments', 'local_rec_number', 'iras_number', 'cpms_id', 'main_funding_source'],
 )
 def test__search__string(client, faker, loggedin_user, standard_lookups, n, field):
     for _ in range(30):
@@ -112,7 +111,6 @@ def test__search__yesno(client, faker, loggedin_user, standard_lookups, n, field
         ('methodology', Methodology),
         ('expected_impact', ExpectedImpact),
         ('trial_phase', TrialPhase),
-        ('main_funding_source', MainFundingSource),
         ('main_funding_category', MainFundingCategory),
         ('main_funding_dhsc_nihr_funding', MainFundingDhscNihrFunding),
         ('main_funding_industry', MainFundingIndustry),

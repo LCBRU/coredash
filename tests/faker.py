@@ -1,7 +1,7 @@
 from random import choice
 from coredash.model.finance_upload import FinanceUpload
 from coredash.model.lookups import Theme
-from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
+from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 from lbrc_flask.pytest.faker import BaseProvider, LookupProvider, FakeCreator
 from tests import convert_projects_to_spreadsheet_data
 
@@ -18,7 +18,6 @@ class CoreDashLookupProvider(LookupProvider):
         Methodology,
         ExpectedImpact,
         TrialPhase,
-        MainFundingSource,
         MainFundingCategory,
         MainFundingDhscNihrFunding,
         MainFundingIndustry,
@@ -65,6 +64,7 @@ class ProjectFakeCreator(FakeCreator):
             local_rec_number = kwargs.get('local_rec_number') or self.faker.unique.pystr(min_chars=8, max_chars=8),
             iras_number = kwargs.get('iras_number') or self.faker.unique.pystr(min_chars=8, max_chars=8),
             cpms_id = kwargs.get('cpms_id') or self.faker.unique.pystr(min_chars=8, max_chars=8),
+            main_funding_source = kwargs.get('main_funding_source') or self.faker.unique.pystr(min_chars=50, max_chars=50),
 
             start_date = kwargs.get('start_date') or self.faker.date_object(),
             end_date = kwargs.get('end_date') or self.faker.date_object(),
@@ -91,7 +91,6 @@ class ProjectFakeCreator(FakeCreator):
             methodology =  self.faker.methodology().get_value_or_get(kwargs, 'methodology', lookups_in_db),
             expected_impact =  self.faker.expected_impact().get_value_or_get(kwargs, 'expected_impact', lookups_in_db),
             trial_phase =  self.faker.trial_phase().get_value_or_get(kwargs, 'trial_phase', lookups_in_db),
-            main_funding_source =  self.faker.main_funding_source().get_value_or_get(kwargs, 'main_funding_source', lookups_in_db),
             main_funding_category =  self.faker.main_funding_category().get_value_or_get(kwargs, 'main_funding_category', lookups_in_db),
             main_funding_dhsc_nihr_funding =  self.faker.main_funding_dhsc_nihr_funding().get_value_or_get(kwargs, 'main_funding_dhsc_nihr_funding', lookups_in_db),
             main_funding_industry =  self.faker.main_funding_industry().get_value_or_get(kwargs, 'main_funding_industry', lookups_in_db),

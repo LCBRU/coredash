@@ -1,6 +1,6 @@
 from lbrc_flask.pytest.asserts import assert__input_date, assert__select, assert__input_checkbox
 from coredash.model.lookups import Theme
-from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, MainFundingSource, Methodology, NihrPriorityArea, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
+from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, Methodology, NihrPriorityArea, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 
 
 def assert_project_form(resp, faker):
@@ -22,7 +22,6 @@ def assert_project_form(resp, faker):
     assert__select(soup=resp.soup, id='methodology_id', options=faker.lookup_select_choices(Methodology))
     assert__select(soup=resp.soup, id='expected_impact_id', options=faker.lookup_select_choices(ExpectedImpact))
     assert__select(soup=resp.soup, id='trial_phase_id', options=faker.lookup_select_choices(TrialPhase))
-    assert__select(soup=resp.soup, id='main_funding_source_id', options=faker.lookup_select_choices(MainFundingSource))
     assert__select(soup=resp.soup, id='main_funding_category_id', options=faker.lookup_select_choices(MainFundingCategory))
     assert__select(soup=resp.soup, id='main_funding_dhsc_nihr_funding_id', options=faker.lookup_select_choices(MainFundingDhscNihrFunding))
     assert__select(soup=resp.soup, id='main_funding_industry_id', options=faker.lookup_select_choices(MainFundingIndustry))
@@ -35,6 +34,7 @@ def assert_actual_equals_expected_project(expected, actual):
     assert actual.comments == expected.comments
     assert actual.local_rec_number == expected.local_rec_number
     assert actual.iras_number == expected.iras_number
+    assert actual.main_funding_source == expected.main_funding_source
     assert actual.start_date == expected.start_date
     assert actual.end_date == expected.end_date
     assert actual.participants_recruited_to_centre_fy == expected.participants_recruited_to_centre_fy
@@ -57,7 +57,6 @@ def assert_actual_equals_expected_project(expected, actual):
     assert actual.methodology_id == expected.methodology.id
     assert actual.expected_impact_id == expected.expected_impact.id
     assert actual.trial_phase_id == expected.trial_phase.id
-    assert actual.main_funding_source_id == expected.main_funding_source.id
     assert actual.main_funding_category_id == expected.main_funding_category.id
     assert actual.main_funding_dhsc_nihr_funding_id == expected.main_funding_dhsc_nihr_funding.id
     assert actual.main_funding_industry_id == expected.main_funding_industry.id
@@ -71,6 +70,7 @@ def convert_project_to_form_data(project):
         "local_rec_number": project.local_rec_number,
         "iras_number": project.iras_number,
         "cpms_id": project.cpms_id,
+        "main_funding_source": project.main_funding_source,
         "start_date": project.start_date,
         "end_date": project.end_date,
         "participants_recruited_to_centre_fy": project.participants_recruited_to_centre_fy,
@@ -95,7 +95,6 @@ def convert_project_to_form_data(project):
         "methodology_id": project.methodology.id,
         "expected_impact_id": project.expected_impact.id,
         "trial_phase_id": project.trial_phase.id,
-        "main_funding_source_id": project.main_funding_source.id,
         "main_funding_category_id": project.main_funding_category.id,
         "main_funding_dhsc_nihr_funding_id": project.main_funding_dhsc_nihr_funding.id,
         "main_funding_industry_id": project.main_funding_industry.id,
@@ -116,7 +115,6 @@ def project_form_lookup_names():
         'methodology_id',
         'expected_impact_id',
         'trial_phase_id',
-        'main_funding_source_id',
         'main_funding_category_id',
         'main_funding_dhsc_nihr_funding_id',
         'main_funding_industry_id',

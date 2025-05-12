@@ -18,6 +18,7 @@ def updater_out(faker, standard_lookups):
         local_rec_number='LR_A',
         iras_number='I_A',
         cpms_id='CPMS_A',
+        main_funding_source='Main Funding Source A',
 
         start_date=date(2025, 1, 1),
         end_date=date(2025, 6, 1),
@@ -44,7 +45,6 @@ def updater_out(faker, standard_lookups):
         methodology=standard_lookups['methodology'][0],
         expected_impact=standard_lookups['expected impact'][0],
         trial_phase=standard_lookups['trial phase'][0],
-        main_funding_source=standard_lookups['main funding source'][0],
         main_funding_category=standard_lookups['main funding category'][0],
         main_funding_dhsc_nihr_funding=standard_lookups['main funding dhsc nihr funding'][0],
         main_funding_industry=standard_lookups['main funding industry'][0],
@@ -62,6 +62,7 @@ def original_out(faker, standard_lookups):
         local_rec_number='LR_B',
         iras_number='I_B',
         cpms_id='CPMS_B',
+        main_funding_source='Main Funding Source B',
 
         start_date=date(2025, 1, 2),
         end_date=date(2025, 6, 2),
@@ -88,7 +89,6 @@ def original_out(faker, standard_lookups):
         methodology=standard_lookups['methodology'][1],
         expected_impact=standard_lookups['expected impact'][1],
         trial_phase=standard_lookups['trial phase'][1],
-        main_funding_source=standard_lookups['main funding source'][1],
         main_funding_category=standard_lookups['main funding category'][1],
         main_funding_dhsc_nihr_funding=standard_lookups['main funding dhsc nihr funding'][1],
         main_funding_industry=standard_lookups['main funding industry'][1],
