@@ -22,7 +22,6 @@ def upgrade() -> None:
     sa.Column('guid', sa.String(length=50), nullable=False),
     sa.Column('filename', sa.String(length=500), nullable=False),
     sa.Column('status', sa.String(length=50), nullable=False),
-    sa.Column('errors', sa.Text(length=64000), nullable=False),
     sa.Column('last_update_date', sa.DateTime(), nullable=False),
     sa.Column('created_date', sa.DateTime(), nullable=False),
     sa.Column('last_update_by', sa.String(length=200), nullable=False),
