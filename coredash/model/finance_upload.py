@@ -1,3 +1,4 @@
+from typing import List
 import uuid
 from flask import current_app
 from lbrc_flask.database import db
@@ -29,6 +30,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     guid: Mapped[str] = mapped_column(String(50))
     filename: Mapped[str] = mapped_column(String(500))
     status: Mapped[str] = mapped_column(String(50), default='')
+    messages: Mapped[List["FinanceUploadMessage"]] = relationship(back_populates="finance_upload")
 
     def __init__(self, **kwargs):
         if 'guid' not in kwargs:
@@ -47,15 +49,12 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
 
         spreadsheet = self.get_spreadsheet()
 
-        errors = []
         messages = []
 
         if not spreadsheet.has_worksheet():
             messages.append(ColumnsDefinitionValidationMessage(type=ColumnsDefinitionValidationMessage.TYPE__ERROR, message=f"Missing worksheet '{WORKSHEET_NAME_PROJECT_LIST}'"))
         else:
             messages.extend(definition.validation_errors(spreadsheet))
-
-        print(messages)
 
         db.session.add_all([FinanceUploadMessage(
             finance_upload=self,
@@ -64,8 +63,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
             message=m.message,
         ) for m in messages])
 
-        if errors or messages:
-            self.errors = "\n".join(errors)
+        if any(m.is_error for m in messages):
             self.status = FinanceUpload.STATUS__ERROR
 
     @property
@@ -81,7 +79,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
 class FinanceUploadMessage(AuditMixin, CommonMixin, db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     finance_upload_id: Mapped[int] = mapped_column(ForeignKey(FinanceUpload.id), index=True, nullable=False)
-    finance_upload: Mapped[FinanceUpload] = relationship(foreign_keys=[finance_upload_id])
+    finance_upload: Mapped["FinanceUpload"] = relationship(back_populates="messages")
     type: Mapped[str] = mapped_column(String(20), index=True)
 
     __mapper_args__ = {
@@ -91,17 +89,32 @@ class FinanceUploadMessage(AuditMixin, CommonMixin, db.Model):
     row: Mapped[int] = mapped_column(Integer, nullable=True)
     message: Mapped[str] = mapped_column(Text, nullable=False)
 
+    @property
+    def display_text(self):
+        if self.row:
+            return f"{self.type}: {self.message} on row {self.row}"
+        else:
+            return f"{self.type}: {self.message}"
+
 
 class FinanceUploadErrorMessage(FinanceUploadMessage):
     __mapper_args__ = {
         "polymorphic_identity": 'Error',
     }
 
+    @property
+    def is_error(self):
+        return True
+
 
 class FinanceUploadWarningMessage(FinanceUploadMessage):
     __mapper_args__ = {
         "polymorphic_identity": 'Warning',
     }
+
+    @property
+    def is_error(self):
+        return False
 
 
 class FinanceUploadColumnDefinition(ColumnsDefinition):
@@ -172,6 +185,7 @@ class FinanceUploadColumnDefinition(ColumnsDefinition):
                 name='Main Funding - BRC Funding',
                 translated_name='main_funding_brc_funding',
                 allow_null=True,
+                skip_errors=True,
             ),
             NumericColumnDefinition(
                 name='Total External Funding Awarded',

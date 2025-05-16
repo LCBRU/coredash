@@ -90,8 +90,8 @@ def projects_save(data):
 
 def project_populate(project, data):
     project.title = data['title']
-    project.summary = data['summary']
-    project.comments = data['comments']
+    project.summary = data['summary'] or ''
+    project.comments = data['comments'] or ''
     project.local_rec_number = data['local_rec_number']
     project.iras_number = data['iras_number']
     project.cpms_id = data['cpms_id']

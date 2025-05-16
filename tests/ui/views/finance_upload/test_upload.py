@@ -5,7 +5,7 @@ from flask import url_for
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__input_file, assert__refresh_response, assert__requires_role
 from lbrc_flask.database import db
 from sqlalchemy import func, select
-from coredash.model.finance_upload import WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUploadColumnDefinition, FinanceUploadErrorMessage
+from coredash.model.finance_upload import WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUploadColumnDefinition, FinanceUploadErrorMessage, FinanceUploadWarningMessage
 from coredash.model.project import Project
 from tests import convert_projects_to_spreadsheet_data
 from tests.requests import coredash_modal_get
@@ -68,6 +68,14 @@ def assert__finance_upload_error(row: Optional[int], message: str):
         select(FinanceUploadErrorMessage)
         .where(FinanceUploadErrorMessage.row == row)
         .where(FinanceUploadErrorMessage.message.like(f"{message}%"))
+    ).scalar_one_or_none() is not None
+
+
+def assert__finance_upload_warning(row: Optional[int], message: str):
+    assert db.session.execute(
+        select(FinanceUploadWarningMessage)
+        .where(FinanceUploadWarningMessage.row == row)
+        .where(FinanceUploadWarningMessage.message.like(f"{message}%"))
     ).scalar_one_or_none() is not None
 
 
@@ -200,7 +208,6 @@ def test__post__case_insenstive_column_names(client, faker, loggedin_user_financ
         'Project Actual Start Date',
         'Project End Date',
         'BRC funding',
-        'Main Funding - BRC Funding',
         'Total External Funding Awarded',
         'Is this project sensitive',
         'First in Human Project',
@@ -226,6 +233,27 @@ def test__post__invalid_column_type(client, faker, loggedin_user_finance_uploade
 
     assert__finance_upload_error(row=1, message=f"{invalid_column}: Invalid value")
 
+
+@pytest.mark.parametrize(
+    "invalid_column", [
+        'Main Funding - BRC Funding',
+    ],
+)
+@pytest.mark.xdist_group(name="spreadsheets")
+def test__post__invalid_column_type__ignore_errors(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
+    data = faker.finance_spreadsheet_data(rows=1)
+
+    data[0][invalid_column.lower()] = faker.pystr()
+
+    _post_upload_data(
+        client=client,
+        faker=faker,
+        data=data,
+        expected_status=FinanceUpload.STATUS__PROCESSED,
+        expected_projects=1,
+    )
+
+    assert__finance_upload_warning(row=1, message=f"{invalid_column}: Invalid value")
 
 
 @pytest.mark.parametrize(

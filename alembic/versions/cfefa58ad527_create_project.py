@@ -26,9 +26,9 @@ def upgrade() -> None:
     sa.Column('iras_number', sa.String(length=50), nullable=True),
     sa.Column('cpms_id', sa.String(length=50), nullable=True),
     sa.Column('main_funding_source', sa.String(length=500), nullable=False),
-    sa.Column('start_date', sa.Date(), nullable=False),
-    sa.Column('end_date', sa.Date(), nullable=False),
-    sa.Column('participants_recruited_to_centre_fy', sa.Integer(), nullable=False),
+    sa.Column('start_date', sa.Date(), nullable=True),
+    sa.Column('end_date', sa.Date(), nullable=True),
+    sa.Column('participants_recruited_to_centre_fy', sa.Integer(), nullable=True),
     sa.Column('brc_funding', sa.Integer(), nullable=False),
     sa.Column('main_funding_brc_funding', sa.Integer(), nullable=True),
     sa.Column('total_external_funding_award', sa.Integer(), nullable=False),
@@ -41,7 +41,7 @@ def upgrade() -> None:
     sa.Column('project_status_id', sa.Integer(), nullable=False),
     sa.Column('theme_id', sa.Integer(), nullable=False),
     sa.Column('ukcrc_health_category_id', sa.Integer(), nullable=False),
-    sa.Column('nihr_priority_area_id', sa.Integer(), nullable=False),
+    sa.Column('nihr_priority_area_id', sa.Integer(), nullable=True),
     sa.Column('ukcrc_research_activity_code_id', sa.Integer(), nullable=False),
     sa.Column('racs_sub_category_id', sa.Integer(), nullable=True),
     sa.Column('research_type_id', sa.Integer(), nullable=False),
@@ -69,10 +69,10 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['ukcrc_health_category_id'], ['ukcrc_health_category.id'], ),
     sa.ForeignKeyConstraint(['ukcrc_research_activity_code_id'], ['ukcrc_research_activity_code.id'], ),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('cpms_id'),
-    sa.UniqueConstraint('iras_number'),
-    sa.UniqueConstraint('local_rec_number'),
-    sa.UniqueConstraint('title')
+    # sa.UniqueConstraint('cpms_id'),
+    # sa.UniqueConstraint('iras_number'),
+    # sa.UniqueConstraint('local_rec_number'),
+    # sa.UniqueConstraint('title')
     )
     op.create_index(op.f('ix_project_end_date'), 'project', ['end_date'], unique=False)
     op.create_index(op.f('ix_project_expected_impact_id'), 'project', ['expected_impact_id'], unique=False)

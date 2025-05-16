@@ -29,7 +29,7 @@
                 <th>Date Uploaded</th>
                 <th>Filename</th>
                 <th>Status</th>
-                <th>Errors</th>
+                <th>Messages</th>
             </tr>
         </thead>
         <tbody>
@@ -39,7 +39,13 @@
                     <td>{{ u.created_date | datetime_format }}</td>
                     <td>{{ u.filename }}</td>
                     <td>{{ u.status }}</td>
-                    <td>{{ u.errors | br }}</td>
+                    <td>
+                        <ul>
+                            {% for m in u.messages %}
+                                <li>{{ m.display_text }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
