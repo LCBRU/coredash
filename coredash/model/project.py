@@ -1,5 +1,5 @@
 from datetime import date
-from coredash.model.lookups import Lookup, Theme
+from coredash.model.lookups import Lookup, Theme, UkcrcHealthCategory
 from lbrc_flask.database import db
 from lbrc_flask.security import AuditMixin
 from lbrc_flask.model import CommonMixin
@@ -8,9 +8,6 @@ from sqlalchemy import ForeignKey, String, Text
 
 
 class ProjectStatus(Lookup, db.Model):
-    pass
-
-class UkcrcHealthCategory(Lookup, db.Model):
     pass
 
 class NihrPriorityArea(Lookup, db.Model):
@@ -47,7 +44,7 @@ class MainFundingIndustry(Lookup, db.Model):
 class Project(AuditMixin, CommonMixin, db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    title: Mapped[str] = mapped_column(String(500), nullable=False, unique=True)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
     summary: Mapped[str] = mapped_column(Text, nullable=False)
     comments: Mapped[str] = mapped_column(Text, nullable=False)
 

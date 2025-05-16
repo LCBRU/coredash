@@ -4,3 +4,7 @@ from lbrc_flask.lookups import Lookup
 
 class Theme(Lookup, db.Model):
     pass
+
+
+class UkcrcHealthCategory(Lookup, db.Model):
+    pass

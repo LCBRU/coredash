@@ -1,6 +1,6 @@
 from lbrc_flask.database import db
 from sqlalchemy import delete, or_, select
-from coredash.model.project import Project, ProjectStatus
+from coredash.model.project import Project
 
 
 def project_search_query(search_data=None):
