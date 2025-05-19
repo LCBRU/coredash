@@ -14,6 +14,8 @@ from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFund
 
 
 WORKSHEET_NAME_PROJECT_LIST = 'Project List'
+WORKSHEET_NAME_INVESTIGATORS = 'NIHR Investigators'
+
 
 class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     STATUS__AWAITING_PROCESSING = 'Awaiting Processing'
@@ -41,13 +43,17 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     def local_filepath(self):
         return current_app.config["FILE_UPLOAD_DIRECTORY"] / secure_filename(f"{self.guid}_{self.filename}")
 
-    def get_spreadsheet(self):
-        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_PROJECT_LIST, column_header_row=4, header_rows=4)
+    def get_spreadsheet(self, worksheet):
+        return ExcelData(filepath=self.local_filepath, worksheet=worksheet, column_header_row=4, header_rows=4)
 
     def validate(self):
+        self.validate_project_list()
+        self.validate_investigators()
+
+    def validate_project_list(self):
         definition = FinanceUploadColumnDefinition()
 
-        spreadsheet = self.get_spreadsheet()
+        spreadsheet = self.get_spreadsheet(WORKSHEET_NAME_PROJECT_LIST)
 
         messages = []
 
@@ -66,6 +72,25 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
         if any(m.is_error for m in messages):
             self.status = FinanceUpload.STATUS__ERROR
 
+
+    def validate_investigators(self):
+        spreadsheet = self.get_spreadsheet(WORKSHEET_NAME_INVESTIGATORS)
+
+        messages = []
+
+        if not spreadsheet.has_worksheet():
+            messages.append(ColumnsDefinitionValidationMessage(type=ColumnsDefinitionValidationMessage.TYPE__ERROR, message=f"Missing worksheet '{WORKSHEET_NAME_INVESTIGATORS}'"))
+
+        db.session.add_all([FinanceUploadMessage(
+            finance_upload=self,
+            type=m.type,
+            row=m.row,
+            message=m.message,
+        ) for m in messages])
+
+        if any(m.is_error for m in messages):
+            self.status = FinanceUpload.STATUS__ERROR
+
     @property
     def is_error(self):
         return self.status == FinanceUpload.STATUS__ERROR
@@ -73,7 +98,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     def data(self):
         definition = FinanceUploadColumnDefinition()
 
-        return definition.translated_data(self.get_spreadsheet())
+        return definition.translated_data(self.get_spreadsheet(WORKSHEET_NAME_PROJECT_LIST))
 
 
 class FinanceUploadMessage(AuditMixin, CommonMixin, db.Model):

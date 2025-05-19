@@ -6,6 +6,7 @@
     <div class="container">
       <menu>
         <li><a href="{{url_for('ui.index')}}" icon="icon home">Projects</a></li>
+        <li><a href="{{url_for('ui.people_index')}}" icon="icon home">People</a></li>
         {% if current_user.is_finance_uploader %}
           <li><a href="{{url_for('ui.finance_upload_index')}}" icon="icon home">Finance Uploads</a></li>
         {% endif %}
