@@ -1,7 +1,6 @@
 from random import choice
 from coredash.model.finance_upload import FinanceUpload
 from coredash.model.lookups import Theme
-from coredash.model.people import JobTitle, Person, ProfessionalBackground, ProfessionalBackgroundDetail
 from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 from lbrc_flask.pytest.faker import BaseProvider, LookupProvider, FakeCreator
 from tests import convert_projects_to_spreadsheet_data
@@ -22,9 +21,6 @@ class CoreDashLookupProvider(LookupProvider):
         MainFundingCategory,
         MainFundingDhscNihrFunding,
         MainFundingIndustry,
-        JobTitle,
-        ProfessionalBackground,
-        ProfessionalBackgroundDetail,
     ]
 
 
@@ -106,37 +102,6 @@ class ProjectFakeCreator(FakeCreator):
 class ProjectProvider(BaseProvider):
     def project(self):
         return ProjectFakeCreator()
-
-
-class PersonFakeCreator(FakeCreator):
-    def __init__(self):
-        super().__init__(Person)
-        self.previous_iras_number = set()
-
-    def get(self, lookups_in_db=True, **kwargs):
-        self.faker.add_provider(CoreDashLookupProvider)
-
-        result = self.cls(
-            first_name = kwargs.get('first_name') or self.faker.first_name(),
-            last_name = kwargs.get('last_name') or self.faker.last_name(),
-            comments = kwargs.get('comments') or self.faker.paragraph(),
-
-            orcid = kwargs.get('orcid') or self.faker.unique.orcid(),
-
-            full_time_equivalent = kwargs.get('full_time_equivalent') or choice([0.2, 0.4, 0.4, 0.5, 0.6, 0.8, 1.0]),
-
-            job_title =  self.faker.job_title().get_value_or_get(kwargs, 'job_title', lookups_in_db),
-            ukcrc_health_category =  self.faker.ukcrc_health_category().get_value_or_get(kwargs, 'ukcrc_health_category', lookups_in_db),
-            professional_background =  self.faker.professional_background().get_value_or_get(kwargs, 'professional_background', lookups_in_db),
-            professional_background_detail = self.faker.professional_background_detail().get_value_or_get(kwargs, 'professional_background_detail', lookups_in_db),
-        )
-
-        return result
-
-
-class PersonProvider(BaseProvider):
-    def person(self):
-        return PersonFakeCreator()
 
 
 class FinanceUploadFakeCreator(FakeCreator):

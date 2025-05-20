@@ -14,7 +14,6 @@ from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFund
 
 
 WORKSHEET_NAME_PROJECT_LIST = 'Project List'
-WORKSHEET_NAME_INVESTIGATORS = 'NIHR Investigators'
 
 
 class FinanceUpload(AuditMixin, CommonMixin, db.Model):
@@ -48,7 +47,6 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
 
     def validate(self):
         self.validate_project_list()
-        self.validate_investigators()
 
     def validate_project_list(self):
         definition = FinanceUploadColumnDefinition()
@@ -61,25 +59,6 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
             messages.append(ColumnsDefinitionValidationMessage(type=ColumnsDefinitionValidationMessage.TYPE__ERROR, message=f"Missing worksheet '{WORKSHEET_NAME_PROJECT_LIST}'"))
         else:
             messages.extend(definition.validation_errors(spreadsheet))
-
-        db.session.add_all([FinanceUploadMessage(
-            finance_upload=self,
-            type=m.type,
-            row=m.row,
-            message=m.message,
-        ) for m in messages])
-
-        if any(m.is_error for m in messages):
-            self.status = FinanceUpload.STATUS__ERROR
-
-
-    def validate_investigators(self):
-        spreadsheet = self.get_spreadsheet(WORKSHEET_NAME_INVESTIGATORS)
-
-        messages = []
-
-        if not spreadsheet.has_worksheet():
-            messages.append(ColumnsDefinitionValidationMessage(type=ColumnsDefinitionValidationMessage.TYPE__ERROR, message=f"Missing worksheet '{WORKSHEET_NAME_INVESTIGATORS}'"))
 
         db.session.add_all([FinanceUploadMessage(
             finance_upload=self,

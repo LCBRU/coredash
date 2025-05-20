@@ -6,8 +6,7 @@ from lbrc_flask.pytest.asserts import assert__requires_login, assert__input_file
 from lbrc_flask.database import db
 from lbrc_flask.pytest.faker import FakeXlsxWorksheet, FakeXlsxFile
 from sqlalchemy import func, select
-from coredash.model.finance_upload import WORKSHEET_NAME_INVESTIGATORS, WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUploadColumnDefinition, FinanceUploadErrorMessage, FinanceUploadWarningMessage
-from coredash.model.people import Person
+from coredash.model.finance_upload import WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUploadColumnDefinition, FinanceUploadErrorMessage, FinanceUploadWarningMessage
 from coredash.model.project import Project
 from tests import convert_projects_to_spreadsheet_data
 from tests.requests import coredash_modal_get
@@ -23,11 +22,6 @@ class FakeFinanceUpload():
         self.project_list_header_row: int = 4
         self.project_list_data: list = []
 
-        self.investigators_name: str = WORKSHEET_NAME_INVESTIGATORS
-        self.investigators_headers: list[str] = FinanceUploadColumnDefinition().column_names
-        self.investigators_header_row: int = 4
-        self.investigators_data: list = []
-
     def get_project_list_worksheet(self):
         return FakeXlsxWorksheet(
             name=self.project_list_name,
@@ -36,18 +30,9 @@ class FakeFinanceUpload():
             headers_on_row=self.project_list_header_row,
         )
 
-    def get_investigators_worksheet(self):
-        return FakeXlsxWorksheet(
-            name=self.investigators_name,
-            headers=self.investigators_headers,
-            data=self.investigators_data,
-            headers_on_row=self.investigators_header_row,
-        )
-
     def get_worksheets(self):
         return [
             self.get_project_list_worksheet(),
-            self.get_investigators_worksheet(),
         ]
 
     def get_workbook(self):
@@ -93,13 +78,10 @@ def upload_post_file(client, file: FakeFinanceUpload, expected_status: str):
 
     if expected_status == FinanceUpload.STATUS__PROCESSED:
         expected_project_count = len(file.project_list_data)
-        expected_person_count = len(file.investigators_data)
     else:
         expected_project_count = 0
-        expected_person_count = 0
 
     assert db.session.execute(select(func.count(Project.id))).scalar() == expected_project_count
-    assert db.session.execute(select(func.count(Person.id))).scalar() == expected_person_count
 
 
 def test__get__requires_login(client):
