@@ -1,7 +1,7 @@
 import pytest
 from lbrc_flask.database import db
 from sqlalchemy import select
-from coredash.model.finance_upload import WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUploadColumnDefinition
+from coredash.model.finance_upload import WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUpload_ProjectList_ColumnDefinition
 from coredash.model.project import Project
 from tests import convert_projects_to_spreadsheet_data
 from tests.ui.views.finance_upload.test_upload import FakeFinanceUpload, assert__finance_upload_error, assert__finance_upload_warning, upload_post_file
@@ -45,11 +45,11 @@ def test__post__missing_worksheet(client, faker, loggedin_user_finance_uploader,
 
 
 @pytest.mark.parametrize(
-    "missing_column_name", FinanceUploadColumnDefinition().column_names,
+    "missing_column_name", FinanceUpload_ProjectList_ColumnDefinition().column_names,
 )
 @pytest.mark.xdist_group(name="spreadsheets")
 def test__post__missing_column(client, faker, loggedin_user_finance_uploader, standard_lookups, missing_column_name):
-    columns_to_include = set(FinanceUploadColumnDefinition().column_names) - set([missing_column_name])
+    columns_to_include = set(FinanceUpload_ProjectList_ColumnDefinition().column_names) - set([missing_column_name])
 
     data = faker.finance_spreadsheet_data()
     file = FakeFinanceUpload()
@@ -72,11 +72,11 @@ def test__post__missing_column(client, faker, loggedin_user_finance_uploader, st
 def test__post__case_insenstive_column_names(client, faker, loggedin_user_finance_uploader, standard_lookups, casing):
     match casing:
         case 'lower':
-            columns_to_include = [cn.lower() for cn in FinanceUploadColumnDefinition().column_names]
+            columns_to_include = [cn.lower() for cn in FinanceUpload_ProjectList_ColumnDefinition().column_names]
         case 'upper':
-            columns_to_include = [cn.upper() for cn in FinanceUploadColumnDefinition().column_names]
+            columns_to_include = [cn.upper() for cn in FinanceUpload_ProjectList_ColumnDefinition().column_names]
         case 'title':
-            columns_to_include = [cn.title() for cn in FinanceUploadColumnDefinition().column_names]
+            columns_to_include = [cn.title() for cn in FinanceUpload_ProjectList_ColumnDefinition().column_names]
 
     data = faker.finance_spreadsheet_data()
 
@@ -206,7 +206,7 @@ def test__post__valid_boolean_options(client, faker, loggedin_user_finance_uploa
 )
 @pytest.mark.xdist_group(name="spreadsheets")
 def test__post__invalid_column_length(client, faker, loggedin_user_finance_uploader, standard_lookups, invalid_column):
-    max_length = FinanceUploadColumnDefinition().definition_for_column_name(invalid_column).max_length
+    max_length = FinanceUpload_ProjectList_ColumnDefinition().definition_for_column_name(invalid_column).max_length
 
     data = faker.finance_spreadsheet_data(rows=1)
     data[0][invalid_column.lower()] = faker.pystr(min_chars=max_length+1, max_chars=max_length*2)

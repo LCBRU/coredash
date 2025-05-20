@@ -9,6 +9,7 @@
         {% if current_user.is_finance_uploader %}
           <li><a href="{{url_for('ui.finance_upload_index')}}" icon="icon home">Finance Uploads</a></li>
         {% endif %}
+        <li><a href="{{url_for('ui.dashboard_frontpage')}}" icon="icon home">Dashboard</a></li>
       </menu>
       <menu>
         {% if current_user.is_admin %}

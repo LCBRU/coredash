@@ -1,4 +1,5 @@
 __all__ = [
-    "projects",
+    "dashboard",
     "finance_uploads",
+    "projects",
 ]

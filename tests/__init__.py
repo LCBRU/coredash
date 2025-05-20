@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from coredash.model.finance_upload import FinanceUploadColumnDefinition
+from coredash.model.finance_upload import FinanceUpload_ProjectList_ColumnDefinition
 
 # Load environment variables from '.env' file.
 load_dotenv()
@@ -9,7 +9,7 @@ load_dotenv()
 def convert_projects_to_spreadsheet_data(projects):
     result = []
 
-    col_def = FinanceUploadColumnDefinition()
+    col_def = FinanceUpload_ProjectList_ColumnDefinition()
 
     for p in projects:
         row = {}

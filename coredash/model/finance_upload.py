@@ -49,7 +49,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
         self.validate_project_list()
 
     def validate_project_list(self):
-        definition = FinanceUploadColumnDefinition()
+        definition = FinanceUpload_ProjectList_ColumnDefinition()
 
         spreadsheet = self.get_spreadsheet(WORKSHEET_NAME_PROJECT_LIST)
 
@@ -75,7 +75,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
         return self.status == FinanceUpload.STATUS__ERROR
 
     def data(self):
-        definition = FinanceUploadColumnDefinition()
+        definition = FinanceUpload_ProjectList_ColumnDefinition()
 
         return definition.translated_data(self.get_spreadsheet(WORKSHEET_NAME_PROJECT_LIST))
 
@@ -121,7 +121,7 @@ class FinanceUploadWarningMessage(FinanceUploadMessage):
         return False
 
 
-class FinanceUploadColumnDefinition(ColumnsDefinition):
+class FinanceUpload_ProjectList_ColumnDefinition(ColumnsDefinition):
     @property
     def column_definition(self):
         return [

@@ -6,7 +6,7 @@ from lbrc_flask.pytest.asserts import assert__requires_login, assert__input_file
 from lbrc_flask.database import db
 from lbrc_flask.pytest.faker import FakeXlsxWorksheet, FakeXlsxFile
 from sqlalchemy import func, select
-from coredash.model.finance_upload import WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUploadColumnDefinition, FinanceUploadErrorMessage, FinanceUploadWarningMessage
+from coredash.model.finance_upload import WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUpload_ProjectList_ColumnDefinition, FinanceUploadErrorMessage, FinanceUploadWarningMessage
 from coredash.model.project import Project
 from tests import convert_projects_to_spreadsheet_data
 from tests.requests import coredash_modal_get
@@ -18,7 +18,7 @@ class FakeFinanceUpload():
         self.filename: str = filename or 'test.xlsx'
 
         self.project_list_name: str = WORKSHEET_NAME_PROJECT_LIST
-        self.project_list_headers: list[str] = FinanceUploadColumnDefinition().column_names
+        self.project_list_headers: list[str] = FinanceUpload_ProjectList_ColumnDefinition().column_names
         self.project_list_header_row: int = 4
         self.project_list_data: list = []
 
