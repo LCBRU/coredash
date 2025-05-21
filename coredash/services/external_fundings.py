@@ -1,6 +1,10 @@
 from lbrc_flask.database import db
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from coredash.model.external_funding import ExternalFunding
+
+
+def get_external_funding():
+    return db.sessions.execute(select(ExternalFunding)).scalar()
 
 
 def external_funding_save(data):

@@ -12,9 +12,12 @@ def _get(client, url, user):
     return resp
 
 
-# def test__get__finance_uploader__finance_uploads_menu_item_exists(client, loggedin_user_finance_uploader):
-#     resp = _get(client, _url(), loggedin_user_finance_uploader)
-#     assert resp.soup.nav.find("a", href=url_for('ui.finance_upload_index'), string=re.compile("Finance Uploads")) is not None
+def test__get__finance_uploader__finance_uploads_menu_item_exists(client, loggedin_user_finance_uploader):
+    resp = _get(client, _url(), loggedin_user_finance_uploader)
+
+    # print(loggedin_user_finance_uploader)
+    # print(resp.soup)
+    assert resp.soup.nav.find("a", href=url_for('ui.finance_upload_index'), string=re.compile("Finance Uploads")) is not None
 
 
 def test__get__non_finance_uploader__finance_uploads_menu_item_not_exists(client, loggedin_user):

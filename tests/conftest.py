@@ -6,6 +6,7 @@ from coredash import create_app
 from lbrc_flask.pytest.faker import LbrcFlaskFakerProvider, LbrcFileProvider
 from lbrc_flask.pytest.helpers import login
 from coredash.security import ROLENAME_FINANCE_UPLOADER, ROLENAME_PROJECT_EDITOR, init_authorization
+from coredash.model.security import User
 from tests.faker import CoreDashLookupProvider, CoreDashProvider, FinanceUploadProvider
 
 
@@ -53,6 +54,7 @@ def faker():
     result.add_provider(CoreDashLookupProvider)
     result.add_provider(CoreDashProvider)
     result.add_provider(FinanceUploadProvider)
-    
+
+    result.provider('LbrcFlaskFakerProvider').set_userclass(User)
 
     yield result
