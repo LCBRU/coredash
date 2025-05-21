@@ -14,6 +14,7 @@ from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFund
 
 
 WORKSHEET_NAME_PROJECT_LIST = 'Project List'
+WORKSHEET_NAME_EXTERNAL_FUNDING = 'External Funding'
 
 
 class FinanceUpload(AuditMixin, CommonMixin, db.Model):
@@ -47,6 +48,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
 
     def validate(self):
         self.validate_project_list()
+        self.validate_external_funding()
 
     def validate_project_list(self):
         definition = FinanceUpload_ProjectList_ColumnDefinition()
@@ -70,14 +72,41 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
         if any(m.is_error for m in messages):
             self.status = FinanceUpload.STATUS__ERROR
 
+    def validate_external_funding(self):
+        definition = FinanceUpload_ExternalFunding_ColumnDefinition()
+
+        spreadsheet = self.get_spreadsheet(WORKSHEET_NAME_EXTERNAL_FUNDING)
+
+        messages = []
+
+        if not spreadsheet.has_worksheet():
+            messages.append(ColumnsDefinitionValidationMessage(type=ColumnsDefinitionValidationMessage.TYPE__ERROR, message=f"Missing worksheet '{WORKSHEET_NAME_EXTERNAL_FUNDING}'"))
+        else:
+            messages.extend(definition.validation_errors(spreadsheet))
+
+        db.session.add_all([FinanceUploadMessage(
+            finance_upload=self,
+            type=m.type,
+            row=m.row,
+            message=m.message,
+        ) for m in messages])
+
+        if any(m.is_error for m in messages):
+            self.status = FinanceUpload.STATUS__ERROR
+
     @property
     def is_error(self):
         return self.status == FinanceUpload.STATUS__ERROR
 
-    def data(self):
+    def project_data(self):
         definition = FinanceUpload_ProjectList_ColumnDefinition()
 
         return definition.translated_data(self.get_spreadsheet(WORKSHEET_NAME_PROJECT_LIST))
+
+    def external_funding_data(self):
+        definition = FinanceUpload_ExternalFunding_ColumnDefinition()
+
+        return definition.translated_data(self.get_spreadsheet(WORKSHEET_NAME_EXTERNAL_FUNDING))
 
 
 class FinanceUploadMessage(AuditMixin, CommonMixin, db.Model):
@@ -316,5 +345,55 @@ class FinanceUpload_ProjectList_ColumnDefinition(ColumnsDefinition):
                 lookup_class=MainFundingIndustry,
                 max_length=100,
                 allow_null=True,
+            ),
+        ]
+
+
+class FinanceUpload_ExternalFunding_ColumnDefinition(ColumnsDefinition):
+    @property
+    def minimum_row_count(self):
+        return 1
+    
+    @property
+    def maximum_row_count(self):
+        return 1
+
+    @property
+    def column_definition(self):
+        return [
+            NumericColumnDefinition(
+                name='Research Council',
+                translated_name='research_council',
+                allow_null=False,
+            ),
+            NumericColumnDefinition(
+                name='Research Charity',
+                translated_name='research_charity',
+                allow_null=False,
+            ),
+            NumericColumnDefinition(
+                name='DHSC/NIHR',
+                translated_name='dhsc_nihr',
+                allow_null=False,
+            ),
+            NumericColumnDefinition(
+                name='Industry Collaborative',
+                translated_name='industry_collaborative',
+                allow_null=False,
+            ),
+            NumericColumnDefinition(
+                name='Industry Contract',
+                translated_name='industry_contract',
+                allow_null=False,
+            ),
+            NumericColumnDefinition(
+                name='Other non-commercial',
+                translated_name='other_non_commercial',
+                allow_null=False,
+            ),
+            NumericColumnDefinition(
+                name='Total',
+                translated_name='total',
+                allow_null=False,
             ),
         ]

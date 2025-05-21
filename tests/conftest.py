@@ -1,6 +1,3 @@
-import os
-from pathlib import Path
-import shutil
 import pytest
 from faker import Faker
 from lbrc_flask.pytest.fixtures import *
@@ -9,7 +6,7 @@ from coredash import create_app
 from lbrc_flask.pytest.faker import LbrcFlaskFakerProvider, LbrcFileProvider
 from lbrc_flask.pytest.helpers import login
 from coredash.security import ROLENAME_FINANCE_UPLOADER, ROLENAME_PROJECT_EDITOR, init_authorization
-from tests.faker import CoreDashLookupProvider, FinanceUploadProvider, ProjectProvider
+from tests.faker import CoreDashLookupProvider, CoreDashProvider, FinanceUploadProvider
 
 
 @pytest.fixture(scope="function")
@@ -54,7 +51,7 @@ def faker():
     result.add_provider(LbrcFlaskFakerProvider)
     result.add_provider(LbrcFileProvider)
     result.add_provider(CoreDashLookupProvider)
-    result.add_provider(ProjectProvider)
+    result.add_provider(CoreDashProvider)
     result.add_provider(FinanceUploadProvider)
     
 

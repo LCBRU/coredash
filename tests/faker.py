@@ -1,9 +1,11 @@
 from random import choice
-from coredash.model.finance_upload import FinanceUpload
+from typing import Optional
+from coredash.model.external_funding import ExternalFunding
+from coredash.model.finance_upload import WORKSHEET_NAME_EXTERNAL_FUNDING, WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUpload_ExternalFunding_ColumnDefinition, FinanceUpload_ProjectList_ColumnDefinition
 from coredash.model.lookups import Theme
 from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
-from lbrc_flask.pytest.faker import BaseProvider, LookupProvider, FakeCreator
-from tests import convert_projects_to_spreadsheet_data
+from lbrc_flask.pytest.faker import BaseProvider, LookupProvider, FakeCreator, FakeXlsxWorksheet, FakeXlsxFile
+from tests import convert_external_funding_to_spreadsheet_data, convert_projects_to_spreadsheet_data
 
 
 class CoreDashLookupProvider(LookupProvider):
@@ -99,9 +101,38 @@ class ProjectFakeCreator(FakeCreator):
         return result
 
 
-class ProjectProvider(BaseProvider):
+class ExternalFundingFakeCreator(FakeCreator):
+    def __init__(self):
+        super().__init__(ExternalFunding)
+
+    def get(self, lookups_in_db=True, **kwargs):
+        research_council = kwargs.get('research_council') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        research_charity = kwargs.get('research_charity') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        dhsc_nihr = kwargs.get('dhsc_nihr') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        industry_collaborative = kwargs.get('industry_collaborative') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        industry_contract = kwargs.get('industry_contract') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        other_non_commercial = kwargs.get('other_non_commercial') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        total = kwargs.get('total') or (research_council + research_charity + dhsc_nihr + industry_collaborative + industry_contract + other_non_commercial)
+
+        result = self.cls(
+            research_council=research_council,
+            research_charity=research_charity,
+            dhsc_nihr=dhsc_nihr,
+            industry_collaborative=industry_collaborative,
+            industry_contract=industry_contract,
+            other_non_commercial=other_non_commercial,
+            total=total,
+        )
+
+        return result
+
+
+class CoreDashProvider(BaseProvider):
     def project(self):
         return ProjectFakeCreator()
+
+    def external_data(self):
+        return ExternalFundingFakeCreator()
 
 
 class FinanceUploadFakeCreator(FakeCreator):
@@ -114,12 +145,54 @@ class FinanceUploadFakeCreator(FakeCreator):
             status = kwargs.get('status') or choice(FinanceUpload.STATUS_NAMES),
         )
 
+class FakeFinanceUpload():
+    def __init__(self, filename: Optional[str] = None):
+        self.filename: str = filename or 'test.xlsx'
+
+        self.project_list_name: str = WORKSHEET_NAME_PROJECT_LIST
+        self.project_list_headers: list[str] = FinanceUpload_ProjectList_ColumnDefinition().column_names
+        self.project_list_header_row: int = 4
+        self.project_list_data: list = []
+
+        self.external_funding_name: str = WORKSHEET_NAME_EXTERNAL_FUNDING
+        self.external_funding_headers: list[str] = FinanceUpload_ExternalFunding_ColumnDefinition().column_names
+        self.external_funding_header_row: int = 4
+        self.external_funding_data: list = []
+
+    def get_project_list_worksheet(self):
+        return FakeXlsxWorksheet(
+            name=self.project_list_name,
+            headers=self.project_list_headers,
+            data=self.project_list_data,
+            headers_on_row=self.project_list_header_row,
+        )
+
+    def get_external_funding_worksheet(self):
+        return FakeXlsxWorksheet(
+            name=self.external_funding_name,
+            headers=self.external_funding_headers,
+            data=self.external_funding_data,
+            headers_on_row=self.external_funding_header_row,
+        )
+
+    def get_worksheets(self):
+        return [
+            self.get_project_list_worksheet(),
+            self.get_external_funding_worksheet(),
+        ]
+
+    def get_workbook(self):
+        return FakeXlsxFile(
+            filename=self.filename,
+            worksheets=self.get_worksheets(),
+        )
+
 
 class FinanceUploadProvider(BaseProvider):
     def finance_upload(self):
         return FinanceUploadFakeCreator()
 
-    def finance_spreadsheet_data(self, rows=10):
+    def finance_spreadsheet_project_data(self, rows=10):
         result = []
 
         for _ in range(rows):
@@ -127,4 +200,17 @@ class FinanceUploadProvider(BaseProvider):
         
         return convert_projects_to_spreadsheet_data(result)
 
+    def finance_spreadsheet_external_funding_data(self, rows=1):
+        result = []
 
+        for _ in range(rows):
+            result.append(self.generator.external_data().get())
+        
+        return convert_external_funding_to_spreadsheet_data(result)
+
+    def finance_spreadsheet(self, project_count: int = 10, external_funding_count: int = 1):
+        file = FakeFinanceUpload()
+        file.project_list_data = self.finance_spreadsheet_project_data(rows=project_count)
+        file.external_funding_data = self.finance_spreadsheet_external_funding_data(rows=external_funding_count)
+
+        return file
