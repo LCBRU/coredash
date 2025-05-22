@@ -52,7 +52,7 @@ def upload_post_file(client, file: FakeFinanceUpload, expected_status: str):
 
     if expected_status == FinanceUpload.STATUS__PROCESSED:
         expected_project_count = len(file.project_list_data)
-        expected_external_funding_count = len(file.external_funding_data)
+        expected_external_funding_count = 1
     else:
         expected_project_count = 0
         expected_external_funding_count = 0
@@ -94,7 +94,7 @@ def assert__projects_equals_expected(spreadsheet: FakeFinanceUpload):
 def assert__external_funding_equals_expected(spreadsheet: FakeFinanceUpload):
     actual = convert_external_funding_to_spreadsheet_data(db.session.execute(select(ExternalFunding)).scalars())
 
-    assert spreadsheet.external_funding_data == actual
+    assert spreadsheet.external_funding_data[0:1] == actual
 
 
 @pytest.mark.app_crsf(True)

@@ -156,7 +156,7 @@ class FakeFinanceUpload():
 
         self.external_funding_name: str = WORKSHEET_NAME_EXTERNAL_FUNDING
         self.external_funding_headers: list[str] = FinanceUpload_ExternalFunding_ColumnDefinition().column_names
-        self.external_funding_header_row: int = 4
+        self.external_funding_header_row: int = 3
         self.external_funding_data: list = []
 
     def get_project_list_worksheet(self):

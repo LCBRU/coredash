@@ -56,16 +56,16 @@ class TestUploadExternalFunding:
         assert__finance_upload_error(row=None, message=f"Expected a minimum of 1 rows, but 0 were found")
 
 
-    def test__post__multiple_rows(self, client, faker):
+    def test__post__multiple_rows_given__takes_only_first(self, client, faker):
         file: FakeFinanceUpload = faker.finance_spreadsheet(external_funding_count=2)
 
         upload_post_file(
             client,
-            expected_status=FinanceUpload.STATUS__ERROR,
+            expected_status=FinanceUpload.STATUS__PROCESSED,
             file=file,
         )
 
-        assert__finance_upload_error(row=None, message=f"Expected a maximum of 1 rows, but 2 were found")
+        assert__external_funding_equals_expected(file)
 
 
     @pytest.mark.parametrize(

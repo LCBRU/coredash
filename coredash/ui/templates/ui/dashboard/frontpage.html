@@ -2,6 +2,23 @@
 
 {% block page_content %}
     <section class="container">
-        <h1>Hello</h1>
+        <div>
+            <header>
+                <h1>Participants Recruited</h1>
+            </header>
+            <p>{{ frontpage.recruitment_count }}</p>
+        </div>
+        <div>
+            <header>
+                <h1>Projects Supported</h1>
+            </header>
+            <p>{{ frontpage.projects_supported }}</p>
+        </div>
+        <div>
+            <header>
+                <h1>Supported Commercial Projects</h1>
+            </header>
+            <p>{{ frontpage.commercial_projects_supported }}</p>
+        </div>
     </section>
 {% endblock %}

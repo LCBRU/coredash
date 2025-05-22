@@ -1,3 +1,4 @@
+from itertools import islice
 from typing import List
 import uuid
 from flask import current_app
@@ -43,8 +44,11 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     def local_filepath(self):
         return current_app.config["FILE_UPLOAD_DIRECTORY"] / secure_filename(f"{self.guid}_{self.filename}")
 
-    def get_spreadsheet(self, worksheet):
-        return ExcelData(filepath=self.local_filepath, worksheet=worksheet, column_header_row=4, header_rows=4)
+    def get_project_list_spreadsheet(self):
+        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_PROJECT_LIST, column_header_row=4, header_rows=4)
+
+    def get_external_funding_spreadsheet(self):
+        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_EXTERNAL_FUNDING, column_header_row=3, header_rows=3)
 
     def validate(self):
         self.validate_project_list()
@@ -53,7 +57,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     def validate_project_list(self):
         definition = FinanceUpload_ProjectList_ColumnDefinition()
 
-        spreadsheet = self.get_spreadsheet(WORKSHEET_NAME_PROJECT_LIST)
+        spreadsheet = self.get_project_list_spreadsheet()
 
         messages = []
 
@@ -75,7 +79,7 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     def validate_external_funding(self):
         definition = FinanceUpload_ExternalFunding_ColumnDefinition()
 
-        spreadsheet = self.get_spreadsheet(WORKSHEET_NAME_EXTERNAL_FUNDING)
+        spreadsheet = self.get_external_funding_spreadsheet()
 
         messages = []
 
@@ -101,12 +105,12 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     def project_data(self):
         definition = FinanceUpload_ProjectList_ColumnDefinition()
 
-        return definition.translated_data(self.get_spreadsheet(WORKSHEET_NAME_PROJECT_LIST))
+        return definition.translated_data(self.get_project_list_spreadsheet())
 
     def external_funding_data(self):
         definition = FinanceUpload_ExternalFunding_ColumnDefinition()
 
-        return definition.translated_data(self.get_spreadsheet(WORKSHEET_NAME_EXTERNAL_FUNDING))
+        return islice(definition.translated_data(self.get_external_funding_spreadsheet()), 1)
 
 
 class FinanceUploadMessage(AuditMixin, CommonMixin, db.Model):
@@ -354,9 +358,8 @@ class FinanceUpload_ExternalFunding_ColumnDefinition(ColumnsDefinition):
     def minimum_row_count(self):
         return 1
     
-    @property
-    def maximum_row_count(self):
-        return 1
+    def row_filter(self, spreadsheet):
+        return [True] + [False for _ in spreadsheet.iter_rows()]
 
     @property
     def column_definition(self):
