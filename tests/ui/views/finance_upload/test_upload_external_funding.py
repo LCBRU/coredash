@@ -19,7 +19,7 @@ class TestUploadExternalFunding:
 
 
     def test__post__valid_file__update(self, client, faker):
-        existing = faker.project().get_in_db()
+        existing = faker.external_data().get_in_db()
         file: FakeFinanceUpload = faker.finance_spreadsheet()
 
         upload_post_file(

@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from lbrc_flask.database import db
 from coredash.model.finance_upload import FinanceUpload, FinanceUploadMessage
+from coredash.services.expenditure import expenditure_save
 from coredash.services.external_fundings import external_funding_save
 from coredash.services.projects import projects_save
 from lbrc_flask.logging import log_exception
@@ -46,4 +47,5 @@ def finance_upload_process(finance_upload: FinanceUpload):
     if not finance_upload.is_error:
         projects_save(finance_upload.project_data())
         external_funding_save(finance_upload.external_funding_data())
+        expenditure_save(finance_upload.expenditure_data())
         finance_upload.status = FinanceUpload.STATUS__PROCESSED

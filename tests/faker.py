@@ -1,11 +1,12 @@
 from random import choice
 from typing import Optional
+from coredash.model.expenditure import Expenditure
 from coredash.model.external_funding import ExternalFunding
-from coredash.model.finance_upload import WORKSHEET_NAME_EXTERNAL_FUNDING, WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUpload_ExternalFunding_ColumnDefinition, FinanceUpload_ProjectList_ColumnDefinition
+from coredash.model.finance_upload import WORKSHEET_NAME_EXPENDITURE, WORKSHEET_NAME_EXTERNAL_FUNDING, WORKSHEET_NAME_PROJECT_LIST, FinanceUpload, FinanceUpload_Expenditure_ColumnDefinition, FinanceUpload_ExternalFunding_ColumnDefinition, FinanceUpload_ProjectList_ColumnDefinition
 from coredash.model.lookups import Theme
 from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFundingDhscNihrFunding, MainFundingIndustry, Methodology, NihrPriorityArea, Project, ProjectStatus, RacsSubCategory, ResearchType, TrialPhase, UkcrcHealthCategory, UkcrcResearchActivityCode
 from lbrc_flask.pytest.faker import BaseProvider, LookupProvider, FakeCreator, FakeXlsxWorksheet, FakeXlsxFile
-from tests import convert_external_funding_to_spreadsheet_data, convert_projects_to_spreadsheet_data
+from tests import convert_expenditure_to_spreadsheet_data, convert_external_funding_to_spreadsheet_data, convert_projects_to_spreadsheet_data
 
 
 class CoreDashLookupProvider(LookupProvider):
@@ -127,12 +128,91 @@ class ExternalFundingFakeCreator(FakeCreator):
         return result
 
 
+class ExpenditureFakeCreator(FakeCreator):
+    def __init__(self):
+        super().__init__(Expenditure)
+
+    def get(self, lookups_in_db=True, **kwargs):
+        blood = kwargs.get('blood') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        cancer_and_neoplasms = kwargs.get('cancer_and_neoplasms') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        cardiovascular = kwargs.get('cardiovascular') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        congenital_disorders = kwargs.get('congenital_disorders') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        ear = kwargs.get('ear') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        eye = kwargs.get('eye') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        infection = kwargs.get('infection') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        inflammatory_and_immune_system = kwargs.get('inflammatory_and_immune_system') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        injuries_and_accidents = kwargs.get('injuries_and_accidents') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        mental_health = kwargs.get('mental_health') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        metabolic_and_endocrine = kwargs.get('metabolic_and_endocrine') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        musculoskeletal = kwargs.get('musculoskeletal') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        oral_and_gastrointestinal = kwargs.get('oral_and_gastrointestinal') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        renal_and_urogenital = kwargs.get('renal_and_urogenital') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        reproductive_health_and_childbirth = kwargs.get('reproductive_health_and_childbirth') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        respiratory = kwargs.get('respiratory') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        skin = kwargs.get('skin') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        stroke = kwargs.get('stroke') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        generic_health_revelance = kwargs.get('generic_health_revelance') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        disputed_aetiology_and_other = kwargs.get('disputed_aetiology_and_other') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        
+        total = kwargs.get('total') or (
+            blood +
+            cancer_and_neoplasms +
+            cardiovascular +
+            congenital_disorders +
+            ear +
+            eye +
+            infection +
+            inflammatory_and_immune_system +
+            injuries_and_accidents +
+            mental_health +
+            metabolic_and_endocrine +
+            musculoskeletal +
+            oral_and_gastrointestinal +
+            renal_and_urogenital +
+            reproductive_health_and_childbirth +
+            respiratory +
+            skin +
+            stroke +
+            generic_health_revelance +
+            disputed_aetiology_and_other
+        )
+
+        result = self.cls(
+            blood=blood,
+            cancer_and_neoplasms=cancer_and_neoplasms,
+            cardiovascular=cardiovascular,
+            congenital_disorders=congenital_disorders,
+            ear=ear,
+            eye=eye,
+            infection=infection,
+            inflammatory_and_immune_system=inflammatory_and_immune_system,
+            injuries_and_accidents=injuries_and_accidents,
+            mental_health=mental_health,
+            metabolic_and_endocrine=metabolic_and_endocrine,
+            musculoskeletal=musculoskeletal,
+            oral_and_gastrointestinal=oral_and_gastrointestinal,
+            renal_and_urogenital=renal_and_urogenital,
+            reproductive_health_and_childbirth=reproductive_health_and_childbirth,
+            respiratory=respiratory,
+            skin=skin,
+            stroke=stroke,
+            generic_health_revelance=generic_health_revelance,
+            disputed_aetiology_and_other=disputed_aetiology_and_other,
+            total=total,
+        )
+
+        return result
+
+
 class CoreDashProvider(BaseProvider):
     def project(self):
         return ProjectFakeCreator()
 
     def external_data(self):
         return ExternalFundingFakeCreator()
+
+    def expenditure_data(self):
+        return ExpenditureFakeCreator()
 
 
 class FinanceUploadFakeCreator(FakeCreator):
@@ -159,6 +239,11 @@ class FakeFinanceUpload():
         self.external_funding_header_row: int = 3
         self.external_funding_data: list = []
 
+        self.expenditure_name: str = WORKSHEET_NAME_EXPENDITURE
+        self.expenditure_headers: list[str] = FinanceUpload_Expenditure_ColumnDefinition().column_names
+        self.expenditure_header_row: int = 4
+        self.expenditure_data: list = []
+
     def get_project_list_worksheet(self):
         return FakeXlsxWorksheet(
             name=self.project_list_name,
@@ -175,10 +260,19 @@ class FakeFinanceUpload():
             headers_on_row=self.external_funding_header_row,
         )
 
+    def get_expenditure_worksheet(self):
+        return FakeXlsxWorksheet(
+            name=self.expenditure_name,
+            headers=self.expenditure_headers,
+            data=self.expenditure_data,
+            headers_on_row=self.expenditure_header_row,
+        )
+
     def get_worksheets(self):
         return [
             self.get_project_list_worksheet(),
             self.get_external_funding_worksheet(),
+            self.get_expenditure_worksheet(),
         ]
 
     def get_workbook(self):
@@ -208,9 +302,13 @@ class FinanceUploadProvider(BaseProvider):
         
         return convert_external_funding_to_spreadsheet_data(result)
 
+    def finance_spreadsheet_expenditure_data(self):
+        return convert_expenditure_to_spreadsheet_data(self.generator.expenditure_data().get())
+
     def finance_spreadsheet(self, project_count: int = 10, external_funding_count: int = 1):
         file = FakeFinanceUpload()
         file.project_list_data = self.finance_spreadsheet_project_data(rows=project_count)
         file.external_funding_data = self.finance_spreadsheet_external_funding_data(rows=external_funding_count)
+        file.expenditure_data = self.finance_spreadsheet_expenditure_data()
 
         return file

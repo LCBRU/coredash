@@ -5,10 +5,11 @@ from flask import url_for
 from lbrc_flask.pytest.asserts import assert__requires_login, assert__input_file, assert__refresh_response, assert__requires_role
 from lbrc_flask.database import db
 from sqlalchemy import func, select
+from coredash.model.expenditure import Expenditure
 from coredash.model.external_funding import ExternalFunding
 from coredash.model.finance_upload import FinanceUpload, FinanceUploadErrorMessage, FinanceUploadWarningMessage
 from coredash.model.project import Project
-from tests import convert_external_funding_to_spreadsheet_data, convert_projects_to_spreadsheet_data
+from tests import convert_expenditure_to_spreadsheet_data, convert_external_funding_to_spreadsheet_data, convert_projects_to_spreadsheet_data
 from tests.faker import FakeFinanceUpload
 from tests.requests import coredash_modal_get
 from unittest.mock import patch
@@ -95,6 +96,12 @@ def assert__external_funding_equals_expected(spreadsheet: FakeFinanceUpload):
     actual = convert_external_funding_to_spreadsheet_data(db.session.execute(select(ExternalFunding)).scalars())
 
     assert spreadsheet.external_funding_data[0:1] == actual
+
+
+def assert__expenditure_equals_expected(spreadsheet: FakeFinanceUpload):
+    actual = convert_expenditure_to_spreadsheet_data(db.session.execute(select(Expenditure)).scalar())
+
+    assert spreadsheet.expenditure_data == actual
 
 
 @pytest.mark.app_crsf(True)

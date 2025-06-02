@@ -16,6 +16,7 @@ from coredash.model.project import ExpectedImpact, MainFundingCategory, MainFund
 
 WORKSHEET_NAME_PROJECT_LIST = 'Project List'
 WORKSHEET_NAME_EXTERNAL_FUNDING = 'External Funding'
+WORKSHEET_NAME_EXPENDITURE = 'Expenditure by Health Category'
 
 
 class FinanceUpload(AuditMixin, CommonMixin, db.Model):
@@ -49,6 +50,9 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
 
     def get_external_funding_spreadsheet(self):
         return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_EXTERNAL_FUNDING, column_header_row=3, header_rows=3)
+
+    def get_expenditure_spreadsheet(self):
+        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_EXPENDITURE, column_header_row=4, header_rows=4)
 
     def validate(self):
         self.validate_project_list()
@@ -111,6 +115,11 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
         definition = FinanceUpload_ExternalFunding_ColumnDefinition()
 
         return islice(definition.translated_data(self.get_external_funding_spreadsheet()), 1)
+
+    def expenditure_data(self):
+        definition = FinanceUpload_Expenditure_ColumnDefinition()
+
+        return islice(definition.translated_data(self.get_expenditure_spreadsheet()), 1)
 
 
 class FinanceUploadMessage(AuditMixin, CommonMixin, db.Model):
@@ -400,3 +409,90 @@ class FinanceUpload_ExternalFunding_ColumnDefinition(ColumnsDefinition):
                 allow_null=False,
             ),
         ]
+
+
+class FinanceUpload_Expenditure_ColumnDefinition(ColumnsDefinition):
+
+    HEALTH_CATEGORY__BLOOD = 'blood'
+    HEALTH_CATEGORY__CANCER = 'cancer and neoplasms'
+    HEALTH_CATEGORY__CARDIOVASCULAR = 'cardiovascular'
+    HEALTH_CATEGORY__CONGENITAL = 'congenital disorders'
+    HEALTH_CATEGORY__EAR = 'ear'
+    HEALTH_CATEGORY__EYE = 'eye'
+    HEALTH_CATEGORY__INFECTION = 'infection'
+    HEALTH_CATEGORY__INFLAMMATORY = 'inflammatory and immune system'
+    HEALTH_CATEGORY__INJURIES = 'injuries and accidents'
+    HEALTH_CATEGORY__MENTAL = 'mental health'
+    HEALTH_CATEGORY__METABOLIC = 'metabolic and endocrine'
+    HEALTH_CATEGORY__MUSCULOSKELETAL = 'musculoskeletal'
+    HEALTH_CATEGORY__GASTOINTESTINAL = 'oral and gastrointestinal'
+    HEALTH_CATEGORY__RENAL = 'renal and urogenital'
+    HEALTH_CATEGORY__REPRODUCTIVE = 'reproductive health and childbirth'
+    HEALTH_CATEGORY__RESPIRATORY = 'respiratory'
+    HEALTH_CATEGORY__SKIN = 'skin'
+    HEALTH_CATEGORY__STROKE = 'stroke'
+    HEALTH_CATEGORY__GENETIC = 'generic health revelance'
+    HEALTH_CATEGORY__OTHER = 'disputed aetiology and other'
+    HEALTH_CATEGORY__TOTAL = 'total'
+
+    HEALTH_CATEGORIES = [
+        HEALTH_CATEGORY__BLOOD,
+        HEALTH_CATEGORY__CANCER,
+        HEALTH_CATEGORY__CARDIOVASCULAR,
+        HEALTH_CATEGORY__CONGENITAL,
+        HEALTH_CATEGORY__EAR,
+        HEALTH_CATEGORY__EYE,
+        HEALTH_CATEGORY__INFECTION,
+        HEALTH_CATEGORY__INFLAMMATORY,
+        HEALTH_CATEGORY__INJURIES,
+        HEALTH_CATEGORY__MENTAL,
+        HEALTH_CATEGORY__METABOLIC,
+        HEALTH_CATEGORY__MUSCULOSKELETAL,
+        HEALTH_CATEGORY__GASTOINTESTINAL,
+        HEALTH_CATEGORY__RENAL,
+        HEALTH_CATEGORY__REPRODUCTIVE,
+        HEALTH_CATEGORY__RESPIRATORY,
+        HEALTH_CATEGORY__SKIN,
+        HEALTH_CATEGORY__STROKE,
+        HEALTH_CATEGORY__GENETIC,
+        HEALTH_CATEGORY__OTHER,
+        HEALTH_CATEGORY__TOTAL,
+    ]
+
+    COLUMN_NAME__HEALTH_CATEGORY = 'UKCRC Health Category'
+    COLUMN_NAME__EXPENDITURE = 'Expenditure'
+
+    @property
+    def health_category_column_definition(self):
+        return StringColumnDefinition(
+            name=self.COLUMN_NAME__HEALTH_CATEGORY,
+            translated_name=self.field_name_from_column_name(self.COLUMN_NAME__HEALTH_CATEGORY),
+            allow_null=False,
+        )
+
+    @property
+    def expenditure_column_definition(self):
+        return NumericColumnDefinition(
+            name=self.COLUMN_NAME__EXPENDITURE,
+            translated_name=self.field_name_from_column_name(self.COLUMN_NAME__EXPENDITURE),
+            allow_null=False,
+        )
+
+    @property
+    def column_definition(self):
+        return [
+            self.health_category_column_definition,
+            self.expenditure_column_definition,
+        ]
+
+    def translated_data(self, spreadsheet):
+        result = {}
+
+        for row in self.iter_filtered_data(spreadsheet):
+            health_category = self.health_category_column_definition.get_translated_value(row)
+            column_name = self.field_name_from_column_name(health_category)
+            expenditure = self.expenditure_column_definition.get_translated_value(row)
+
+            result[column_name] = expenditure
+
+        return [result]
