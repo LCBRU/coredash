@@ -1,3 +1,4 @@
+from itertools import islice
 from lbrc_flask.database import db
 from sqlalchemy import delete, select
 from coredash.model.external_funding import ExternalFunding
@@ -8,6 +9,7 @@ def get_external_funding():
 
 
 def external_funding_save(data):
+    data = islice(data, 1)
     external_fundings = [external_funding_populate(ExternalFunding(), d) for d in data]
 
     db.session.execute(delete(ExternalFunding))

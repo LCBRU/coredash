@@ -1,5 +1,7 @@
+from dataclasses import dataclass
 from itertools import islice
-from typing import List
+from pathlib import Path
+from typing import List, Optional
 import uuid
 from flask import current_app
 from lbrc_flask.database import db
@@ -18,6 +20,26 @@ WORKSHEET_NAME_PROJECT_LIST = 'Project List'
 WORKSHEET_NAME_EXTERNAL_FUNDING = 'External Funding'
 WORKSHEET_NAME_EXPENDITURE = 'Expenditure by Health Category'
 
+
+@dataclass
+class Worksheet:
+    filepath: Path
+    name: str
+    definition: ColumnsDefinition
+    column_header_row: Optional[int] = 1
+    header_rows: Optional[int] = 1
+
+    def get_worksheet(self):
+        return ExcelData(
+            filepath=self.filepath,
+            worksheet=self.name,
+            column_header_row=self.column_header_row,
+            header_rows=self.header_rows,
+        )
+
+    @property
+    def worksheet_missing(self):
+        return not self.get_worksheet().has_worksheet()
 
 class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     STATUS__AWAITING_PROCESSING = 'Awaiting Processing'
@@ -41,34 +63,41 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
             kwargs['guid'] = str(uuid.uuid4())
         super().__init__(**kwargs)
 
-    @property
-    def local_filepath(self):
-        return current_app.config["FILE_UPLOAD_DIRECTORY"] / secure_filename(f"{self.guid}_{self.filename}")
+        self.local_filepath = current_app.config["FILE_UPLOAD_DIRECTORY"] / secure_filename(f"{self.guid}_{self.filename}")
 
-    def get_project_list_spreadsheet(self):
-        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_PROJECT_LIST, column_header_row=4, header_rows=4)
+        self.project_list_worksheet = Worksheet(
+            filepath=self.local_filepath,
+            name=WORKSHEET_NAME_PROJECT_LIST,
+            definition=FinanceUpload_ProjectList_ColumnDefinition(),
+            column_header_row=4,
+            header_rows=4,
+        )
+        self.external_funding_worksheet = Worksheet(
+            filepath=self.local_filepath,
+            name=WORKSHEET_NAME_EXTERNAL_FUNDING,
+            definition=FinanceUpload_ExternalFunding_ColumnDefinition(),
+            column_header_row=3,
+            header_rows=3,
+        )
+        self.expenditure_worksheet = Worksheet(
+            filepath=self.local_filepath,
+            name=WORKSHEET_NAME_EXPENDITURE,
+            definition=FinanceUpload_Expenditure_ColumnDefinition(),
+            column_header_row=4,
+            header_rows=4,
+        )
 
-    def get_external_funding_spreadsheet(self):
-        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_EXTERNAL_FUNDING, column_header_row=3, header_rows=3)
-
-    def get_expenditure_spreadsheet(self):
-        return ExcelData(filepath=self.local_filepath, worksheet=WORKSHEET_NAME_EXPENDITURE, column_header_row=4, header_rows=4)
+        self.worksheets = [
+            self.project_list_worksheet,
+            self.external_funding_worksheet,
+            self.expenditure_worksheet,
+        ]
 
     def validate(self):
-        self.validate_project_list()
-        self.validate_external_funding()
-
-    def validate_project_list(self):
-        definition = FinanceUpload_ProjectList_ColumnDefinition()
-
-        spreadsheet = self.get_project_list_spreadsheet()
-
         messages = []
 
-        if not spreadsheet.has_worksheet():
-            messages.append(ColumnsDefinitionValidationMessage(type=ColumnsDefinitionValidationMessage.TYPE__ERROR, message=f"Missing worksheet '{WORKSHEET_NAME_PROJECT_LIST}'"))
-        else:
-            messages.extend(definition.validation_errors(spreadsheet))
+        for w in self.worksheets:
+            messages.extend(self.validate_worksheet(w))
 
         db.session.add_all([FinanceUploadMessage(
             finance_upload=self,
@@ -80,27 +109,19 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
         if any(m.is_error for m in messages):
             self.status = FinanceUpload.STATUS__ERROR
 
-    def validate_external_funding(self):
-        definition = FinanceUpload_ExternalFunding_ColumnDefinition()
-
-        spreadsheet = self.get_external_funding_spreadsheet()
-
+    def validate_worksheet(self, worksheet: Worksheet):
         messages = []
 
-        if not spreadsheet.has_worksheet():
-            messages.append(ColumnsDefinitionValidationMessage(type=ColumnsDefinitionValidationMessage.TYPE__ERROR, message=f"Missing worksheet '{WORKSHEET_NAME_EXTERNAL_FUNDING}'"))
+        if worksheet.worksheet_missing:
+            message = f"Missing worksheet '{worksheet.name}'"
+            messages.append(ColumnsDefinitionValidationMessage(
+                type=ColumnsDefinitionValidationMessage.TYPE__ERROR,
+                message=message,
+            ))
         else:
-            messages.extend(definition.validation_errors(spreadsheet))
+            messages.extend(worksheet.definition.validation_errors(worksheet.get_worksheet()))
 
-        db.session.add_all([FinanceUploadMessage(
-            finance_upload=self,
-            type=m.type,
-            row=m.row,
-            message=m.message,
-        ) for m in messages])
-
-        if any(m.is_error for m in messages):
-            self.status = FinanceUpload.STATUS__ERROR
+        return messages
 
     @property
     def is_error(self):
@@ -109,17 +130,17 @@ class FinanceUpload(AuditMixin, CommonMixin, db.Model):
     def project_data(self):
         definition = FinanceUpload_ProjectList_ColumnDefinition()
 
-        return definition.translated_data(self.get_project_list_spreadsheet())
+        return definition.translated_data(self.project_list_worksheet.get_worksheet())
 
     def external_funding_data(self):
         definition = FinanceUpload_ExternalFunding_ColumnDefinition()
 
-        return islice(definition.translated_data(self.get_external_funding_spreadsheet()), 1)
+        return definition.translated_data(self.external_funding_worksheet.get_worksheet())
 
     def expenditure_data(self):
         definition = FinanceUpload_Expenditure_ColumnDefinition()
 
-        return islice(definition.translated_data(self.get_expenditure_spreadsheet()), 1)
+        return definition.translated_data(self.expenditure_worksheet.get_worksheet())
 
 
 class FinanceUploadMessage(AuditMixin, CommonMixin, db.Model):

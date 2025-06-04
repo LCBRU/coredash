@@ -1,3 +1,4 @@
+from itertools import islice
 from lbrc_flask.database import db
 from sqlalchemy import delete, select
 from coredash.model.expenditure import Expenditure
@@ -8,6 +9,8 @@ def get_expenditure():
 
 
 def expenditure_save(data):
+    data = islice(data, 1)
+
     expenditures = [expenditure_populate(Expenditure(), d) for d in data]
 
     db.session.execute(delete(Expenditure))
@@ -15,7 +18,6 @@ def expenditure_save(data):
 
 
 def expenditure_populate(expenditure: Expenditure, data: dict):
-    print(data)
     expenditure.blood = data['blood']
     expenditure.cancer_and_neoplasms = data['cancer_and_neoplasms']
     expenditure.cardiovascular = data['cardiovascular']
