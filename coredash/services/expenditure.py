@@ -36,8 +36,7 @@ def expenditure_populate(expenditure: Expenditure, data: dict):
     expenditure.respiratory = data['respiratory']
     expenditure.skin = data['skin']
     expenditure.stroke = data['stroke']
-    expenditure.generic_health_revelance = data['generic_health_revelance']
+    expenditure.generic_health_relevance = data['generic_health_relevance']
     expenditure.disputed_aetiology_and_other = data['disputed_aetiology_and_other']
-    expenditure.total = data['total']
 
     return expenditure

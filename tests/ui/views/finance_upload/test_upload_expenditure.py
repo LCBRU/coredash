@@ -1,6 +1,6 @@
 import pytest
 from coredash.model.finance_upload import WORKSHEET_NAME_EXPENDITURE, WORKSHEET_NAME_EXTERNAL_FUNDING, FinanceUpload, FinanceUpload_Expenditure_ColumnDefinition, FinanceUpload_ExternalFunding_ColumnDefinition
-from tests.ui.views.finance_upload.test_upload import FakeFinanceUpload, assert__expenditure_equals_expected, assert__external_funding_equals_expected, assert__finance_upload_error, upload_post_file
+from tests.ui.views.finance_upload.test_upload import FakeFinanceUpload, assert__expenditure_equals_expected, assert__external_funding_equals_expected, assert__finance_upload_error, assert__finance_upload_warning, upload_post_file
 
 
 @pytest.mark.usefixtures("loggedin_user_finance_uploader", "standard_lookups")
@@ -75,7 +75,7 @@ class TestUploadExpenditure:
             file=file,
         )
 
-        assert__finance_upload_error(row=None, message=f"Extra row 'Unwanted'")
+        assert__finance_upload_warning(row=None, message=f"Extra row 'Unwanted'")
 
 
     @pytest.mark.parametrize(
@@ -121,6 +121,40 @@ class TestUploadExpenditure:
 
 
     @pytest.mark.parametrize(
+        "casing", ['lower', 'upper', 'title'],
+    )
+    def test__post__case_insenstive_health_category(self, client, faker, casing):
+        def translate(value):
+            match casing:
+                case 'lower':
+                    return value.lower()
+                case 'upper':
+                    return value.upper()
+                case 'title':
+                    return value.title()
+
+        file: FakeFinanceUpload = faker.finance_spreadsheet()
+
+        new_data = []
+
+        col_hc = FinanceUpload_Expenditure_ColumnDefinition.COLUMN_NAME__HEALTH_CATEGORY.lower()
+        col_e = FinanceUpload_Expenditure_ColumnDefinition.COLUMN_NAME__EXPENDITURE.lower()
+
+        file.expenditure_data = [{
+            col_hc: translate(d[col_hc]),
+            col_e: d[col_e],
+        } for d in file.expenditure_data]
+
+        upload_post_file(
+            client,
+            expected_status=FinanceUpload.STATUS__PROCESSED,
+            file=file,
+        )
+
+        assert__external_funding_equals_expected(file)
+
+
+    @pytest.mark.parametrize(
         "invalid_column", [
             'Expenditure',
         ],
@@ -140,7 +174,6 @@ class TestUploadExpenditure:
 
     @pytest.mark.parametrize(
         "missing_data", [
-            FinanceUpload_Expenditure_ColumnDefinition.COLUMN_NAME__HEALTH_CATEGORY,
             FinanceUpload_Expenditure_ColumnDefinition.COLUMN_NAME__EXPENDITURE,
         ],
     )

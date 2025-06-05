@@ -151,32 +151,9 @@ class ExpenditureFakeCreator(FakeCreator):
         respiratory = kwargs.get('respiratory') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
         skin = kwargs.get('skin') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
         stroke = kwargs.get('stroke') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
-        generic_health_revelance = kwargs.get('generic_health_revelance') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
+        generic_health_relevance = kwargs.get('generic_health_relevance') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
         disputed_aetiology_and_other = kwargs.get('disputed_aetiology_and_other') or self.faker.pydecimal(right_digits=2, min_value=1_000, max_value=10_000_000)
         
-        total = kwargs.get('total') or (
-            blood +
-            cancer_and_neoplasms +
-            cardiovascular +
-            congenital_disorders +
-            ear +
-            eye +
-            infection +
-            inflammatory_and_immune_system +
-            injuries_and_accidents +
-            mental_health +
-            metabolic_and_endocrine +
-            musculoskeletal +
-            oral_and_gastrointestinal +
-            renal_and_urogenital +
-            reproductive_health_and_childbirth +
-            respiratory +
-            skin +
-            stroke +
-            generic_health_revelance +
-            disputed_aetiology_and_other
-        )
-
         result = self.cls(
             blood=blood,
             cancer_and_neoplasms=cancer_and_neoplasms,
@@ -196,9 +173,8 @@ class ExpenditureFakeCreator(FakeCreator):
             respiratory=respiratory,
             skin=skin,
             stroke=stroke,
-            generic_health_revelance=generic_health_revelance,
+            generic_health_relevance=generic_health_relevance,
             disputed_aetiology_and_other=disputed_aetiology_and_other,
-            total=total,
         )
 
         return result

@@ -452,9 +452,8 @@ class FinanceUpload_Expenditure_ColumnDefinition(ColumnsDefinition):
     HEALTH_CATEGORY__RESPIRATORY = 'respiratory'
     HEALTH_CATEGORY__SKIN = 'skin'
     HEALTH_CATEGORY__STROKE = 'stroke'
-    HEALTH_CATEGORY__GENETIC = 'generic health revelance'
+    HEALTH_CATEGORY__GENETIC = 'generic health relevance'
     HEALTH_CATEGORY__OTHER = 'disputed aetiology and other'
-    HEALTH_CATEGORY__TOTAL = 'total'
 
     HEALTH_CATEGORIES = [
         HEALTH_CATEGORY__BLOOD,
@@ -477,11 +476,17 @@ class FinanceUpload_Expenditure_ColumnDefinition(ColumnsDefinition):
         HEALTH_CATEGORY__STROKE,
         HEALTH_CATEGORY__GENETIC,
         HEALTH_CATEGORY__OTHER,
-        HEALTH_CATEGORY__TOTAL,
     ]
 
     COLUMN_NAME__HEALTH_CATEGORY = 'UKCRC Health Category'
     COLUMN_NAME__EXPENDITURE = 'Expenditure'
+
+    def row_filter(self, spreadsheet):
+        required_health_categories = {hc.lower() for hc in self.HEALTH_CATEGORIES}
+        return [
+            self.health_category_column_definition.get_translated_value(r) is not None and self.health_category_column_definition.get_translated_value(r).lower() in required_health_categories
+            for r in spreadsheet.iter_rows()
+        ]
 
     @property
     def health_category_column_definition(self):
@@ -527,8 +532,8 @@ class FinanceUpload_Expenditure_ColumnDefinition(ColumnsDefinition):
         return results
 
     def missing_health_category_validation_errors(self, spreadsheet):
-        found_health_categories = set([self.health_category_column_definition.get_translated_value(r) for r in self.iter_filtered_data(spreadsheet)])
-        required_health_categories = set(self.HEALTH_CATEGORIES)
+        found_health_categories = set([self.health_category_column_definition.get_translated_value(r).lower() for r in spreadsheet.iter_rows() if self.health_category_column_definition.get_translated_value(r) is not None])
+        required_health_categories = {hc.lower() for hc in self.HEALTH_CATEGORIES}
 
         missing = required_health_categories - found_health_categories
 
@@ -538,12 +543,12 @@ class FinanceUpload_Expenditure_ColumnDefinition(ColumnsDefinition):
         ) for m in missing]
 
     def extra_health_category_validation_errors(self, spreadsheet):
-        found_health_categories = set([self.health_category_column_definition.get_translated_value(r) for r in self.iter_filtered_data(spreadsheet)])
-        required_health_categories = set(self.HEALTH_CATEGORIES)
+        found_health_categories = set([self.health_category_column_definition.get_translated_value(r).lower() for r in spreadsheet.iter_rows() if self.health_category_column_definition.get_translated_value(r) is not None])
+        required_health_categories = {hc.lower() for hc in self.HEALTH_CATEGORIES}
 
         extra = found_health_categories - required_health_categories
 
         return [ColumnsDefinitionValidationMessage(
-            type=ColumnsDefinitionValidationMessage.TYPE__ERROR,
+            type=ColumnsDefinitionValidationMessage.TYPE__WARNING,
             message=f"Extra row '{e}'"
         ) for e in extra]

@@ -41,8 +41,8 @@ def loggedin_user_finance_uploader(client, faker):
 @pytest.fixture(scope="function")
 def app(tmp_path):
     class LocalTestConfig(TestConfig):
-        # FILE_UPLOAD_DIRECTORY = tmp_path
-        FILE_UPLOAD_DIRECTORY = Path('/home/richard/projects/coredash/upload/test/')
+        FILE_UPLOAD_DIRECTORY = tmp_path
+        # FILE_UPLOAD_DIRECTORY = Path('/home/richard/projects/coredash/upload/test/')
 
     yield create_app(LocalTestConfig)
 

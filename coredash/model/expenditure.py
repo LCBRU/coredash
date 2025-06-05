@@ -26,6 +26,5 @@ class Expenditure(AuditMixin, CommonMixin, db.Model):
     respiratory: Mapped[DECIMAL] = mapped_column(DECIMAL(10,2), nullable=False)
     skin: Mapped[DECIMAL] = mapped_column(DECIMAL(10,2), nullable=False)
     stroke: Mapped[DECIMAL] = mapped_column(DECIMAL(10,2), nullable=False)
-    generic_health_revelance: Mapped[DECIMAL] = mapped_column(DECIMAL(10,2), nullable=False)
+    generic_health_relevance: Mapped[DECIMAL] = mapped_column(DECIMAL(10,2), nullable=False)
     disputed_aetiology_and_other: Mapped[DECIMAL] = mapped_column(DECIMAL(10,2), nullable=False)
-    total: Mapped[DECIMAL] = mapped_column(DECIMAL(10,2), nullable=False)
