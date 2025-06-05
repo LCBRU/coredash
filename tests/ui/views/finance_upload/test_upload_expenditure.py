@@ -47,10 +47,10 @@ class TestUploadExpenditure:
     @pytest.mark.parametrize(
         "missing_category", FinanceUpload_Expenditure_ColumnDefinition.HEALTH_CATEGORIES,
     )
-    def test__post__missing_row(self, client, faker, missing_category):
+    def test__post__missing_health_category_row(self, client, faker, missing_category):
         file: FakeFinanceUpload = faker.finance_spreadsheet(external_funding_count=0)
 
-        file.expenditure_data = [ed for ed in file.expenditure_data if ed[FinanceUpload_Expenditure_ColumnDefinition.COLUMN_NAME__HEALTH_CATEGORY] != missing_category]
+        file.expenditure_data = [ed for ed in file.expenditure_data if ed[FinanceUpload_Expenditure_ColumnDefinition.COLUMN_NAME__HEALTH_CATEGORY.lower()] != missing_category]
 
         upload_post_file(
             client,
@@ -61,16 +61,21 @@ class TestUploadExpenditure:
         assert__finance_upload_error(row=None, message=f"Missing row for '{missing_category}'")
 
 
-    # def test__post__multiple_rows_given__takes_only_first(self, client, faker):
-    #     file: FakeFinanceUpload = faker.finance_spreadsheet(external_funding_count=2)
+    def test__post__extra_health_category_row(self, client, faker):
+        file: FakeFinanceUpload = faker.finance_spreadsheet(external_funding_count=0)
 
-    #     upload_post_file(
-    #         client,
-    #         expected_status=FinanceUpload.STATUS__PROCESSED,
-    #         file=file,
-    #     )
+        file.expenditure_data.append({
+            FinanceUpload_Expenditure_ColumnDefinition.COLUMN_NAME__HEALTH_CATEGORY.lower(): 'Unwanted',
+            FinanceUpload_Expenditure_ColumnDefinition.COLUMN_NAME__EXPENDITURE.lower(): 2.00,
+        })
 
-    #     assert__external_funding_equals_expected(file)
+        upload_post_file(
+            client,
+            expected_status=FinanceUpload.STATUS__ERROR,
+            file=file,
+        )
+
+        assert__finance_upload_error(row=None, message=f"Extra row 'Unwanted'")
 
 
     @pytest.mark.parametrize(

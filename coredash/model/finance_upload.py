@@ -517,3 +517,33 @@ class FinanceUpload_Expenditure_ColumnDefinition(ColumnsDefinition):
             result[column_name] = expenditure
 
         return [result]
+
+    def custom_validation_errors(self, spreadsheet):
+        results = []
+
+        results.extend(self.missing_health_category_validation_errors(spreadsheet))
+        results.extend(self.extra_health_category_validation_errors(spreadsheet))
+
+        return results
+
+    def missing_health_category_validation_errors(self, spreadsheet):
+        found_health_categories = set([self.health_category_column_definition.get_translated_value(r) for r in self.iter_filtered_data(spreadsheet)])
+        required_health_categories = set(self.HEALTH_CATEGORIES)
+
+        missing = required_health_categories - found_health_categories
+
+        return [ColumnsDefinitionValidationMessage(
+            type=ColumnsDefinitionValidationMessage.TYPE__ERROR,
+            message=f"Missing row for '{m}'"
+        ) for m in missing]
+
+    def extra_health_category_validation_errors(self, spreadsheet):
+        found_health_categories = set([self.health_category_column_definition.get_translated_value(r) for r in self.iter_filtered_data(spreadsheet)])
+        required_health_categories = set(self.HEALTH_CATEGORIES)
+
+        extra = found_health_categories - required_health_categories
+
+        return [ColumnsDefinitionValidationMessage(
+            type=ColumnsDefinitionValidationMessage.TYPE__ERROR,
+            message=f"Extra row '{e}'"
+        ) for e in extra]
